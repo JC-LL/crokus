@@ -1,0 +1,28 @@
+design_unit :
+    '#include' => include
+    '#define'  => define
+    'struct'   => struct
+    'typedef'  => typdef
+               => decl
+
+include :
+  '#' IDENT ('<'      => ('<' IDENT '.' '>')
+            |STR_LIT  => (STR_LIT)
+            )
+
+define :
+  '#' 'define' IDENT expression
+
+
+stmt :
+  '(' =>
+
+
+expression :
+  relation (['<' | '<=' | '>' | '>=' | '==' | '!=' | '||']  relation )*
+
+relation :
+  factor (['+' | '-' | '|'] factor)*
+
+factor :
+  term (['*' | '/' | '>' | '>=' | '&' | '&&' | '%' | '='] term)

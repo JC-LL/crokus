@@ -1,0 +1,17 @@
+a+b+c > d
+
+(a+b)/2 + a*b.real*c[i] + d[i][j+1].im + &v[k];
+
+3.14 + "hello" + f(x);
+
+f(x) + g(x,t);
+
+-x+x;
+
+a>=b;
+
+a = b =c;
+
+a + *b;
+
+1.0 + (float *) a;
