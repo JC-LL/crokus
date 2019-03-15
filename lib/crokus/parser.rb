@@ -477,7 +477,6 @@ module Crokus
 
     def assign
       indent "assign"
-      #expect :ident
       lhs=term()
       if showNext.is_a? [:assign,:addeq,:subeq,:muleq,:diveq,:modeq]
         op=acceptIt
@@ -717,7 +716,7 @@ module Crokus
     def factor
       indent "factor"
       e=term()
-      multiplicative_operators = [:mul,:div,:gt,:gte,:ampersand,:ampersand2,:mod,:assign]
+      multiplicative_operators = [:mul,:div,:gt,:gte,:ampersand,:ampersand2,:mod]
       while multiplicative_operators.include?(showNext.kind)
         op=acceptIt
         if showNext.is_a? :rparen
@@ -807,14 +806,11 @@ module Crokus
         while showNext.is_a? [:lbrack,:lparen,:dot,:arrow]
           if par=parenthesized?
             ret=FunCall.new(ret,par)
-          end
-          if idx=indexed?
+          elsif idx=indexed?
             ret=Index.new(ret,idx)
-          end
-          if dot=doted?
+          elsif dot=doted?
             ret=Pointed.new(ret,dot)
-          end
-          if arw=arrowed?
+          elsif arw=arrowed?
             ret=Arrow.new(ret,arw)
           end
         end
@@ -907,18 +903,14 @@ module Crokus
     def doted?
       if showNext.is_a? :dot
         acceptIt
-        expect :ident
-      else
-        false
+        return expression()
       end
     end
 
     def arrowed?
       if showNext.is_a? :arrow
         acceptIt
-        expect :ident
-      else
-        false
+        return expression()
       end
     end
 

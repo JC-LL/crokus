@@ -3,7 +3,8 @@ module Crokus
     def clean str_c
       str_c.gsub!(";;",";")
       str_c.gsub!(";)",")")
-      str_c.gsub(/\n\s*\{/,"{")
+      str_c.gsub!(/\n\s+\{/,"{")
+      str_c.gsub!(/\n\s*\;/,";")
     end
   end
 end
