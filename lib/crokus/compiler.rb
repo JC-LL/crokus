@@ -63,10 +63,9 @@ module Crokus
     def pretty_print
       indent "=> pretty_print" unless options[:mute]
       code=PrettyPrinter.new.visit(ast)
-      #puts code.finalize
       pp_c=@base_name+"_pp.c"
-      filename=code.save_as pp_c
-      puts "...saved as #{filename}" unless options[:mute]
+      File.open(pp_c,'w'){|f| f.puts code}
+      puts "...saved as #{pp_c}" unless options[:mute]
       dedent
     end
 

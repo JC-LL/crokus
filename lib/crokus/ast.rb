@@ -129,9 +129,10 @@ module Crokus
   end
 
   class FunCall < Ast
-    attr_accessor :name,:args
-    def initialize name,args
+    attr_accessor :name,:args,:as_procedure
+    def initialize name,args,as_procedure=false
       @name,@args=name,args
+      @as_procedure=as_procedure
     end
   end
 

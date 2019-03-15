@@ -267,7 +267,7 @@ module Crokus
           #ret=pointer_decl()
           ret=decl()
         when :lparen
-          ret=func_call()
+          ret=func_call(as_procedure=true)
         when :assign
           ret=assign()
         when :dot
@@ -459,7 +459,7 @@ module Crokus
       return rets
     end
 
-    def func_call
+    def func_call as_procedure=false
       indent "func_call"
       name=expect(:ident)
       expect :lparen
@@ -472,7 +472,7 @@ module Crokus
       end
       expect :rparen
       dedent
-      FunCall.new(name,args)
+      FunCall.new(name,args,as_procedure)
     end
 
     def assign

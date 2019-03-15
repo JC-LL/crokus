@@ -1,6 +1,7 @@
 
 require_relative 'code'
 require_relative 'visitor'
+require_relative 'cleaner'
 
 module Crokus
 
@@ -17,7 +18,9 @@ module Crokus
     def visit ast
       @code=Code.new
       ast.accept(self)
-      return @code
+      str=@code.finalize
+      c_code=Cleaner.new.clean(str)
+      return c_code
     end
 
     def visitDesignUnit du,args=nil
@@ -61,10 +64,8 @@ module Crokus
 
         code << last_str
       else
-        ret = "#{type} #{vname}#{array_size}#{init}"
-
+        ret = "#{type} #{vname}#{array_size}#{init};"
       end
-
 
       code << ret
       dedent
@@ -206,8 +207,7 @@ module Crokus
       op =assign.op.accept(self)
       rhs=assign.rhs.accept(self)
       dedent
-      ret="#{lhs} #{op} #{rhs}"
-      #ret+=";"
+      ret="#{lhs} #{op} #{rhs};"
       ret
     end
 
@@ -217,7 +217,7 @@ module Crokus
       op =accu.op.accept(self)
       rhs=accu.rhs.accept(self) if accu.rhs # i++
       dedent
-      ret="#{lhs}#{op}#{rhs}"
+      ret="#{lhs}#{op}#{rhs};"
       ret
     end
 
@@ -228,6 +228,7 @@ module Crokus
       argus=argus.join(',')
       dedent
       ret="#{fname}(#{argus})"
+      ret+=";" if fcall.as_procedure
       ret
     end
 
@@ -246,11 +247,10 @@ module Crokus
       init=init.join(";")
       cond=for_.cond.accept(self)
       incr=for_.increment.accept(self)
-      code << "for(#{init};#{cond};#{incr}){"
+      code << "for(#{init};#{cond};#{incr})"
       code.indent=2
       code << for_.body.accept(self)
       code.indent=0
-      code << "}"
       dedent
       return code
     end
@@ -259,7 +259,7 @@ module Crokus
       indent "Return"
       e=ret.expr.accept(self) if ret.expr
       dedent
-      return "return #{e}"
+      return "return #{e};"
     end
 
     def visitIf if_,args=nil
@@ -315,11 +315,10 @@ module Crokus
       body=while_.body.collect{|stmt| stmt.accept(self,:body)}
       dedent
       code=Code.new
-      code << "while #{cond}{"
+      code << "while (#{cond})"
       code.indent=2
       body.each{|stmt| code << stmt}
       code.indent=0
-      code << "}"
       return code
     end
 
@@ -328,11 +327,11 @@ module Crokus
       cond=while_.cond.accept(self)
       dedent
       code=Code.new
-      code << "do {"
+      code << "do"
       code.indent=2
-      while_.body.stmts.each{|stmt| code << stmt.accept(self)}
+      code << while_.body.accept(self)
       code.indent=0
-      code << "} while #{cond}"
+      code << "while #{cond};"
       return code
     end
 
@@ -355,7 +354,7 @@ module Crokus
       indent "Goto"
       label=goto.label.accept(self)
       dedent
-      return "goto #{label}"
+      return "goto #{label};"
     end
 
     #..........expresions..........
@@ -443,8 +442,10 @@ module Crokus
       indent "Body"
       code=Code.new
       code << "{"
-      body.each{|stmt| code << stmt.accept(self)+";"}
-      code << "}"
+      body.each do |stmt|
+        code << stmt.accept(self)
+      end
+      code << "\b\b}"
       dedent
       return code
     end
