@@ -75,8 +75,6 @@ void main () {
     gene_rand(tab1, MAX, L_TAB);
     gene_rand(tab2, MAX, L_TAB);
 
-    //print_tab(tab1, L_TAB);
-    //print_tab(tab2, L_TAB);
 
     partitionning(tab1, L_TAB, L_TAB);
     partitionning(tab2, L_TAB, L_TAB);
@@ -86,5 +84,4 @@ void main () {
 
     tab3 = sum_tab(tab1, tab2, L_TAB);
 
-    //print_tab(tab3, L_TAB);
 }
