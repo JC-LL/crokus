@@ -267,11 +267,10 @@ module Crokus
       cond=if_.cond.accept(self)
       dedent
       code=Code.new
-      code << "if #{cond} {"
+      code << "if (#{cond})"
       code.indent=2
       code << if_.body.accept(self)
       code.indent=0
-      code << "}"
       code << if_.else.accept(self,:body) if if_.else
       return code
     end
@@ -280,11 +279,10 @@ module Crokus
       indent "Else"
       dedent
       code=Code.new
-      code << "else {"
+      code << "else"
       code.indent=2
       code << else_.body.accept(self)
       code.indent=0
-      code << "}"
       return code
     end
 
@@ -294,8 +292,7 @@ module Crokus
       sw_.cases.each{|case_| case_.accept(self)}
       dedent
       code=Code.new
-      code << "switch(#{e}){"
-      code << "}"
+      code << "switch(#{e})"
       return code
     end
 
