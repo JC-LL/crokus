@@ -143,7 +143,8 @@ module Crokus
       fname=func.name.accept(self)
       args=func.args.collect{|arg| arg.accept(self)}
       args=args.join(",")
-      code << "\n#{tname} #{fname}(#{args}) {"
+      code << "\n#{tname} #{fname}(#{args})"
+      code << "{" #GNU style
       code.indent=2
       func.body.stmts.each{|stmt| code << stmt.accept(self)}
       code.indent=0
@@ -205,7 +206,7 @@ module Crokus
 
     def visitFor for_,args=nil
       code=Code.new
-      init=for_.init.collect{|stmt|
+      init=for_.init.collect do |stmt|
         stmt_init=stmt.accept(self)
         case stmt_init
         when Code
@@ -213,7 +214,7 @@ module Crokus
         else
           stmt_init
         end
-      }
+      end
       init=init.join(";")
       cond=for_.cond.accept(self)
       incr=for_.increment.accept(self)
@@ -367,10 +368,12 @@ module Crokus
     def visitBody body,args=nil
       code=Code.new
       code << "{"
+      code.indent=2
       body.each do |stmt|
         code << stmt.accept(self)
       end
-      code << "\b\b}"
+      code.indent=0
+      code << "}"
       return code
     end
   end #class Visitor

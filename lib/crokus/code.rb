@@ -23,10 +23,7 @@ class Code
     end
   end
 
-  def finalize dot=false
-    if dot
-      return @lines.join('\n')
-    end
+  def finalize
     @lines.join("\n") if @lines.any?
   end
 
@@ -37,7 +34,6 @@ class Code
   def save_as filename,verbose=true,sep="\n"
     str=self.finalize
     File.open(filename,'w'){|f| f.puts(str)}
-    #puts "saved code in file #{filename}" if verbose
     return filename
   end
 

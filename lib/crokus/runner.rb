@@ -13,7 +13,11 @@ module Crokus
     def run arguments
       compiler=Compiler.new
       compiler.options = args = parse_options(arguments)
-      compiler.compile args[:cfile]
+      if filename=args[:cfile]
+        compiler.compile filename
+      else
+        puts "need a C file : crokus -c <file.c>"
+      end
     end
 
     private

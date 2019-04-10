@@ -14,6 +14,8 @@ module Crokus
 
     def initialize
       @ppr=PrettyPrinter.new
+      @verbose=false
+      #@verbose=true
     end
 
     def acceptIt
@@ -39,6 +41,10 @@ module Crokus
       tokens[n-1] if tokens.any?
     end
 
+    def lookahead(n=2)
+      tokens[n] if tokens.any?
+    end
+
     def show_line pos
       l,c=*pos
       show_lines(str,l-2)
@@ -59,7 +65,7 @@ module Crokus
     end
     #............ parsing methods ...........
     def parse str
-      begin
+      # begin
         @str=str
         @tokens=Lexer.new.tokenize(str)
         @tokens=remove_comments()
@@ -67,12 +73,12 @@ module Crokus
         show_lexer_warnings(warnings)
         @tokens=@tokens.select{|tok| !tok.is_a? [:newline]}
         ast=design_unit()
-      rescue Exception => e
-        puts "PARSING ERROR : #{e}"
-        puts "in C source at line/col #{showNext.pos}"
-        puts e.backtrace
-        abort
-      end
+      # rescue Exception => e
+      #   puts "PARSING ERROR : #{e}"
+      #   puts "in C source at line/col #{showNext.pos}"
+      #   puts e.backtrace
+      #   abort
+      # end
     end
 
     def show_lexer_warnings warnings
@@ -110,12 +116,8 @@ module Crokus
           when "define"
             du << define()
           end
-        when :struct
-          du << stmt #struct()
-        when :typedef
-          du << typedef()
         else
-          du << decl
+          du << declaration
           maybe :semicolon if tokens.any?
         end
       end
@@ -162,13 +164,14 @@ module Crokus
         name=acceptIt
       end
       ret=Struct.new(name)
-      expect :lbrace
-      while !showNext.is_a? :rbrace
-        ret.decls << decl()
-        expect :semicolon
+      if showNext.is_a? :lbrace
+        acceptIt
+        while !showNext.is_a? :rbrace
+          ret.decls << declaration()
+        end
+        ret.decls.flatten!
+        expect :rbrace
       end
-      ret.decls.flatten!
-      expect :rbrace
       dedent
       return ret
     end
@@ -182,7 +185,7 @@ module Crokus
       return Typedef.new(type,id)
     end
 
-    def function name,type_
+    def function_decl name,type_
       indent "function"
       args=function_formal_args()
       case showNext.kind
@@ -214,23 +217,12 @@ module Crokus
 
     def func_formal_arg
       indent "function_arg"
-      type=type()
-      if showNext.is_a? :ident
-        name=acceptIt
-        while showNext.is_a? :lbrack
-          acceptIt
-          if showNext.is_a? :rbrack
-            acceptIt()
-            size=nil
-          else
-            size=expression()
-            expect :rbrack
-          end
-          type=ArrayOf.new(type,size)
-        end
-      end
+      @current_type=type()
+      declarator
+      arrayed?
+      parenthesized?
       dedent
-      return FormalArg.new(name,type)
+      #return FormalArg.new(name,type)
     end
 
     def function_body
@@ -238,56 +230,22 @@ module Crokus
       body=Body.new
       expect :lbrace
       while showNext.kind!=:rbrace
-        body << stmt()
+        body << statement()
       end
       expect :rbrace
       dedent
       return body
     end
 
-    def stmt(arg=nil)
-      indent "stmt ...#{showNext.kind} #{showNext.pos.first}"
+    def statement(arg=nil)
+      indent "statement ...#{showNext.kind} #{showNext.pos.first}"
       case showNext.kind
       when :lbrace
         ret=parse_body()
       when :unsigned,:signed,:int,:short,:float,:double,:long,:char,:void
-        ret=decl()
-      when :ident
-        #int a   => decl
-        #int * a => pointer_decl
-        #scanf(  => func call
-        #i= a    => assign
-        #i[      => assign
-        #i.j     => assign
-        #i->     => assign
-        case showNext(2).kind
-        when :ident
-          ret=decl()
-        when :mul
-          #ret=pointer_decl()
-          ret=decl()
-        when :lparen
-          ret=func_call(as_procedure=true)
-        when :assign
-          ret=assign()
-        when :dot
-          ret=assign()
-        when :lbrack
-          ret=assign()
-        when :arrow
-          ret=assign()
-        when :addadd,:addeq,:subsub,:subeq
-          ret=accu()
-        when :colon
-          expect :ident #label
-          expect :colon
-          s=stmt()
-          ret=LabelledStmt.new(s)
-        else
-          raise "unknown statement at #{showNext.pos}"
-        end
+        ret=declaration()
       when :struct
-        ret=decl()
+        ret=declaration()
       when :if
         ret=parse_if()
       when :while
@@ -303,20 +261,31 @@ module Crokus
         ret=Break.new
       when :do
         ret=do_while()
-      when :addadd,:subsub ; #++i
-        op=acceptIt #++
-        id=expect(:ident)
-        ret=Accu.new(nil,op,id)
       when :goto
         ret=parse_goto()
-
+      when :ident
+        case showNext(2).kind
+        when :ident
+          declaration
+        when :colon
+          parse_label
+          statement
+        else
+          expression_statement
+        end
+      when :semicolon
+        expression_statement
       else
         show_line(showNext.pos)
         raise "unknown statement start at #{showNext.pos} .Got #{showNext.kind} #{showNext.val}"
       end
-      maybe :semicolon if arg!=:no_final_semicolon
       dedent
       return ret
+    end
+
+    def parse_label
+      expect :ident
+      expect :colon
     end
 
     def parse_goto
@@ -330,7 +299,7 @@ module Crokus
     def do_while
       indent "do_while"
       expect :do
-      body=stmt()
+      body=statement()
       expect :while
       e=expression
       dedent
@@ -351,7 +320,7 @@ module Crokus
         case_body=Body.new
         expect :colon
         while showNext.kind!=:rbrace and showNext.kind!=:case and showNext.kind!=:default
-          case_body << stmt()
+          case_body << statement()
         end
         cases << Case.new(case_e,case_body)
       end
@@ -359,7 +328,7 @@ module Crokus
         acceptIt
         expect :colon
         while showNext.kind!=:rbrace
-          stmt()
+          statement()
         end
       end
       expect :rbrace
@@ -380,83 +349,73 @@ module Crokus
 
     # int a
     # int * a
-    # int a,b[10],*c
     # int a=1,b=2;
     # int a[]
     # int* f()
     # struct name *ptr;
+    # paire_t paire = {1,2};
+    # int a,b[10],*c
+    #------------------------------
+    # TYPE ident
+    # ident ident
 
-    def decl
-      indent "decl (line #{showNext.pos.first})"
-      rets=[] # int a,b,c[]
-      t=type()
-      #while tokens.any? and showNext.is_a?(:ident)
-      if showNext.is_a?(:ident)
-        id=acceptIt
-        ret=Decl.new(id,t)
-        if showNext.is_a?(:lparen)
-          rets << ret=function(id,t)
-          #puts "after function call next=#{showNext.val}".center(80,'-')
+    def declaration
+      @current_type=type()
+      declarator
+      arrayed?
+      parenthesized?
+      initialization?
+      while tokens.any? and showNext.is_a? :comma
+        acceptIt
+        pointed?
+        declarator
+        arrayed?
+        initialization?
+      end
+      if tokens.any?
+        maybe :semicolon
+      end
+    end
+
+    def declarator
+      if showNext.is_a? :ident
+        @current_ident=acceptIt
+      end
+    end
+
+    def pointed?
+      return if tokens.empty?
+      while showNext.is_a? :mul
+        acceptIt
+      end
+    end
+
+    def arrayed?
+      return if tokens.empty?
+      while showNext.is_a? :lbrack
+        acceptIt
+        if showNext.is_a? :rbrack
+          acceptIt
         else
-          #warning : indexes seem reversed :
-          #          int t[A][B] if ArrayOf(ArrayOf(int,A),B)
-          # that is "arrayf of B elements of type ArrayOf A elements of type int"
-          tt=t
-          while showNext.is_a? :lbrack
-            acceptIt #[
-            rge=expression
-            expect :rbrack #]
-            ret.type=ArrayOf.new(tt,rge)
-            tt=ret.type
-          end
-          if showNext.is_a? :assign
-            acceptIt
-            ret.init=expression()
-          end
-          rets << ret
-          while showNext.is_a? :comma
-            acceptIt
-            case showNext.kind
-            when :ident
-              id=acceptIt
-              ret=Decl.new(id,t)
-              tt=t
-              while showNext.is_a? :lbrack
-                acceptIt #[
-                rge=expression
-                expect :rbrack #]
-                ret.type=ArrayOf.new(tt,rge)
-                tt=ret.type
-              end
-              if showNext.is_a? :assign
-                acceptIt
-                ret.init=expression()
-              end
-            when :mul # int *a,*b <---second!
-              acceptIt
-              type=PointerTo.new(t.type)
-              ret=Decl.new(nil,type,nil)
-              while showNext.is_a? :mul
-                acceptIt
-                ret.type=PointerTo.new(type)
-              end
-              id=expect(:ident)
-              ret.var=id
-              rets << ret
-              if showNext.is_a? :assign
-                acceptIt
-                ret.init=expression()
-              end
-            else
-              raise "bug while parsing declaration."
-            end
-            rets << ret
-          end #while
+          expression
+          expect :rbrack
         end
       end
-      #puts "end of decl showNext=#{showNext.val}".center(80,'-')
-      dedent
-      return rets
+    end
+
+    def initialization?
+      return if tokens.empty?
+      if showNext.is_a? :assign
+        expect :assign
+        expression
+      end
+    end
+
+    def parenthesized?
+      return if tokens.empty?
+      if showNext.is_a? :lparen
+        function_decl(@current_ident,@current_type)
+      end
     end
 
     def func_call as_procedure=false
@@ -475,116 +434,47 @@ module Crokus
       FunCall.new(name,args,as_procedure)
     end
 
-    def assign
-      indent "assign"
-      lhs=term()
-      if showNext.is_a? [:assign,:addeq,:subeq,:muleq,:diveq,:modeq]
-        op=acceptIt
-      end
-      rhs=expression()
-      dedent
-      Assign.new(lhs,op,rhs)
-    end
-
     def type
       indent "type"
-
       case showNext.kind
       when :signed,:unsigned
-        specifier=acceptIt()
-        t=type()
-        ret=Type.new(t)
-        ret.specifiers << specifier
+        acceptIt
       when :ident,:char,:int,:short,:long,:float,:double,:void
-        tok=acceptIt
-        modifiers=[]
-        if tok.is_a? :long
-          if showNext.is_a? :long
-            long=acceptIt
-            modifiers << long
-          end
-        end
-        ret=Type.new(tok)
-        ret.specifiers = modifiers
-        case showNext.kind
-        when :mul  #int *
-          acceptIt
-          ret=PointerTo.new(ret)
-          while showNext.is_a? :mul
-            acceptIt #int **
-            ret=PointerTo.new(ret)
-          end
-        when :lbrack # int[]
-          acceptIt
-
-          expect :rbrack
-          ret=ArrayOf.new(ret)
-        when :char,:int,:short,:long,:float,:double
-          t=acceptIt() #long int
-          old=ret
-          ret=Type.new(t)
-          ret.specifiers << old
-          case showNext.kind
-          when :char,:int,:short,:long,:float,:double
-            t=acceptIt
-            old=ret
-            ret=Type.new(t)
-            ret.specifiers << old
-            rer.specifiers.flatten!
-          end
-        end
-
+        acceptIt
       when :struct
-        if showNext(2).is_a? :lbrace #typdef...struct { }
-          ret=struct()
-          case showNext.kind
-          when :mul  #int *
+        struct()
+      when :typedef
+        typedef()
+      else
+        raise "Parsing ERROR in type declaration: '#{showNext}'"
+      end
+      while showNext.is_a? [:mul,:lparen]
+        case showNext.kind
+        when :mul
+          acceptIt
+        when :lparen
+          acceptIt
+          if showNext.is_a? :rparen
             acceptIt
-            ret=PointerTo.new(ret)
-            while showNext.is_a? :mul
-              acceptIt #int **
-              ret=PointerTo.new(ret)
-            end
-          when :lbrack # int[]
-            acceptIt
-            expect :rbrack
-            ret=ArrayOf.new(ret)
-          end
-        elsif showNext(3).is_a? :lbrace #struct a {}
-          ret=struct()
-          case showNext.kind
-          when :mul  #int *
-            acceptIt
-            ret=PointerTo.new(ret)
-            while showNext.is_a? :mul
-              acceptIt #int **
-              ret=PointerTo.new(ret)
-            end
-          when :lbrack # int[]
-            acceptIt
-            expect :rbrack
-            ret=ArrayOf.new(ret)
-          end
-        else #struct name * ptr
-          acceptIt #struct
-          name=expect(:ident)
-          ret=Struct.new(name)
-          while showNext.is_a? :mul
-            acceptIt #int **
-            ret=PointerTo.new(ret)
+          else
+            expression
+            expect :rparen
           end
         end
       end
       dedent
-      return ret
     end
 
     def parse_if
       indent "parse_if"
       expect :if
+      if showNext.is_a? :lparen # helps wrt casting.
+        acceptIt
+        lparen=true
+      end
       cond=expression()
-      #dbg_print(cond)
-      body=stmt()
+      expect :rparen if lparen
+      body=statement()
       if showNext.is_a? :else
         else_=parse_else()
       end
@@ -596,10 +486,7 @@ module Crokus
       indent "parse else"
       expect :else
       ret=Else.new
-      ret.body=stmt()
-      # if showNext.is_a? :else
-      #   ret.body << parse_else()
-      # end
+      ret.body=statement()
       dedent
       return ret
     end
@@ -609,13 +496,7 @@ module Crokus
       expect :while
       cond=expression()
       body=[]
-      # if showNext.is_a? :lbrace
-      #   acceptIt
-      #   while showNext.kind!=:rbrace
-          body << stmt()
-      #   end
-      #   expect :rbrace
-      # end
+      body << statement()
       dedent
       return While.new(cond,body)
     end
@@ -625,20 +506,18 @@ module Crokus
       forloop=For.new
       expect :for
       expect :lparen
-      forloop.init=parseLoopInit().flatten
-      expect :semicolon
-      forloop.cond=parseLoopCond()
-      expect :semicolon
-      forloop.increment=parseLoopEnd()
+      forloop.init=expression_statement()
+      forloop.cond=expression_statement()
+      forloop.increment=expression()
       expect :rparen
-      forloop.body=stmt()
+      forloop.body=statement()
       dedent
       forloop
     end
 
     def parseLoopInit
       indent "parseLoopInit"
-      ret=stmt(:no_final_semicolon)
+      ret=statement()
       dedent
       return [ret] # because for (int a,b=0;i<10;i++) is also possible.
       # then parser returns an array of Decl
@@ -653,7 +532,7 @@ module Crokus
 
     def parseLoopEnd
       indent "parseLoopEnd"
-      s=stmt()
+      s=statement()
       dedent
       return s
     end
@@ -680,161 +559,377 @@ module Crokus
       body=Body.new
       expect :lbrace
       while !showNext.is_a? :rbrace
-        body << stmt()
+        body << statement()
       end
       expect :rbrace
       return body
     end
 
-    #=====================================================
+    def expression_statement
+      if showNext.is_a? :semicolon
+        acceptIt
+      else
+        expression
+        expect :semicolon
+      end
+    end
+    #===============================================================
+    def debug
+      puts " "*@indentation+@tokens[0..4].map{|t| "'#{t.val}'"}.join(" ")
+    end
+    #===============================================================
     def expression
-      indent "expression...starting by '#{showNext.val}' #{showNext.pos}"
-      e1=relation()
-      relation_operators = [:lt,:lte,:gt,:gte,:eq,:neq,:dbar]
-      while relation_operators.include?(showNext.kind)
-        op=acceptIt
-        e2=relation()
-        e1=Binary.new(e1,op,e2)
+      indent "expression : #{showNext}"
+      assign()
+      while showNext.is_a? :comma
+        acceptIt
+        assign()
       end
       dedent
-      return e1
     end
 
-    def relation
-      indent "relation"
-      e1=factor()
-      additive_operators = [:add,:sub,:or]
-      while additive_operators.include?(showNext.kind)
-        op=acceptIt
-        e2=factor()
-        e1=Binary.new(e1,op,e2)
+    STARTERS_ARRAY_OR_STRUCT_INIT=[:lbrace]
+    STARTERS_PRIMARY=[:ident,:integer_lit,:float_lit,:string_lit,:char_lit,:lparen]+STARTERS_ARRAY_OR_STRUCT_INIT
+    UNARY_OP=[:and,:mul,:add,:sub,:tilde,:not]
+    STARTERS_UNARY=[:inc_op,:dec_op,:sizeof]+STARTERS_PRIMARY+UNARY_OP
+    ASSIGN_OP=[:assign,:add_assign,:mul_assign,:div_assign,:mod_assign]
+
+    def assign
+      indent "assign : #{showNext}"
+      cond_expr
+      if showNext.is_a? ASSIGN_OP
+        acceptIt
+        assign
       end
       dedent
-      return e1
     end
 
-    def factor
-      indent "factor"
-      e=term()
-      multiplicative_operators = [:mul,:div,:gt,:gte,:ampersand,:ampersand2,:mod]
-      while multiplicative_operators.include?(showNext.kind)
-        op=acceptIt
-        if showNext.is_a? :rparen
-          #dont accept it. it will be consumed later in term()
-          return Casting.new(e,op.val)
+    def cond_expr
+      indent "cond_expr : #{showNext}"
+      logor
+      while showNext.is_a? :qmark
+        acceptIt
+        expect :colon
+        cond_expr
+      end
+      dedent
+    end
+
+    def logor
+      indent "logor : #{showNext}"
+      logand
+      while showNext.is_a? :oror
+        acceptIt
+        logand
+      end
+      dedent
+    end
+
+    def logand
+      indent "logand : #{showNext}"
+      inclor
+      while showNext.is_a? :andand
+        acceptIt
+        inclor
+      end
+      dedent
+    end
+
+    def inclor
+      indent "inclor : #{showNext}"
+      exclor
+      while showNext.is_a? :or
+        acceptIt
+        exclor
+      end
+      dedent
+    end
+
+    def exclor
+      indent "exclor : #{showNext}"
+      andexp
+      while showNext.is_a? :xor
+        acceptIt
+        andexp
+      end
+      dedent
+    end
+
+    def andexp
+      indent "andexp : #{showNext}"
+      eqexp
+      while showNext.is_a? :and
+        acceptIt
+        eqexp
+      end
+      dedent
+    end
+
+    def eqexp
+      indent "eqexp : #{showNext}"
+      relexp
+      while showNext.is_a? [:eq,:neq]
+        acceptIt
+        relexp
+      end
+      dedent
+    end
+
+    def relexp
+      indent "relexp : #{showNext}"
+      shiftexp
+      while showNext.is_a? [:lte,:lt,:gte,:gt ]
+        acceptIt
+        shiftexp
+      end
+      dedent
+    end
+
+    def shiftexp
+      indent "shiftexp : #{showNext}"
+      additive
+      while showNext.is_a? [:add,:sub]
+        acceptIt
+        additive
+      end
+      dedent
+    end
+
+    def additive
+      indent "addititve : #{showNext}"
+      multitive
+      while showNext.is_a? [:add,:sub]
+        acceptIt
+        multitive
+      end
+      dedent
+    end
+
+    def multitive
+      indent "multitive : #{showNext}"
+      castexp
+      while showNext.is_a? [:mul,:div,:mod]
+        acceptIt
+        castexp
+      end
+      dedent
+    end
+
+    def castexp
+      indent "castexpr : #{showNext}"
+      case showNext.kind
+      when :lparen # parenth expr OR casting !
+        res=is_casting?
+        puts "casting? : #{res}" if @verbose
+        if res
+          casting
+        else
+          parenthesized
         end
-        e2=term()
-        e=Binary.new(e,op,e2)
+      else
+        unary
       end
       dedent
-      return e
+    end
+
+    def is_casting?
+      i=0
+      tok=DUMMY
+      while tok.kind!=:rparen
+        tok=@tokens[i]
+        i+=1
+      end
+      tok=@tokens[i]
+      return true if tok.is_a? STARTERS_UNARY-STARTERS_ARRAY_OR_STRUCT_INIT
+      return false
+    end
+
+    def casting
+      indent "casting : #{showNext}"
+      expect :lparen
+      typename
+      expect :rparen
+      unary
+      dedent
+    end
+
+    def parenthesized
+      indent "parenthesized : #{showNext}"
+      expect :lparen
+      expression
+      expect :rparen
+      dedent
+    end
+
+    def typename
+      indent "typename"
+      spec_qualifier_list
+      while showNext.is_a? STARTERS_ABSTRACT_DECLARATOR
+        abstract_decl
+      end
+      dedent
+    end
+
+    def spec_qualifier_list
+      indent "spec_qualifier_list #{showNext.inspect}"
+      while showNext.is_a? STARTERS_TYPE_SPECIFIER+STARTERS_TYPE_QUALIFIER
+        if showNext.is_a? STARTERS_TYPE_SPECIFIER
+          type_specifier
+        else
+          type_qualifier
+        end
+      end
+      dedent
+    end
+
+    STARTERS_TYPE_SPECIFIER=[:void,:char,:short,:int,:long,:float,:signed,:unsigned,:struct,:union,:enum,:ident]
+    def type_specifier
+      indent "type_specifier #{showNext}"
+      if showNext.is_a? STARTERS_TYPE_SPECIFIER
+        acceptIt
+      else
+        raise "ERROR : type_specifier. Expecting one of '#{STARTERS_TYPE_SPECIFIER}' at #{showNext.pos}"
+      end
+      dedent
+    end
+
+  #   abstract_declarator
+	#          : pointer
+	#          | direct_abstract_declarator
+	#          | pointer direct_abstract_declarator
+	#          ;
+    STARTERS_ABSTRACT_DECLARATOR=[:mul,:lparen,:lbrack]
+    def abstract_decl
+      indent "abstract_decl"
+      if showNext.is_a? STARTERS_ABSTRACT_DECLARATOR
+        case showNext.kind
+        when :mul
+          pointer
+        else
+          direct_abstract_declarator
+        end
+      else
+        raise "ERROR : in abstract_declarator. Expecting one of #{STARTERS_ABSTRACT_DECLARATOR}"
+      end
+      dedent
+    end
+
+    # pointer
+    # 	: '*'
+    # 	| '*' type_qualifier_list
+    # 	| '*' pointer
+    # 	| '*' type_qualifier_list pointer
+    # 	;
+    STARTERS_TYPE_QUALIFIER=[:const,:volatile]
+    def pointer
+      expect :mul
+      while showNext.is_a? STARTERS_TYPE_QUALIFIER+[:mul]
+        case showNext.kind
+        when :volatile
+          acceptIt
+        when :const
+          acceptIt
+        when :mult
+          acceptIt
+        end
+      end
+    end
+
+    def direct_abstract_declarator
+      raise
     end
 
     def unary
-      op=acceptIt
-      e=expression
-      ret=Unary.new(op,e)
+      if STARTERS_PRIMARY.include? showNext.kind
+        postfix
+      elsif showNext.is_a? [:and,:mul,:add,:sub,:tilde,:not]
+        acceptIt
+        castexp
+      else
+        case showNext.kind
+        when :inc_op
+          acceptIt
+          unary
+        when :dec_op
+          acceptIt
+          unary
+        when :sizeof
+          sizeof()
+        else
+          raise "not an unary"
+        end
+      end
     end
 
-    def term
-      indent "term...starting by '#{showNext.val}'"
+    def sizeof
+      expect :sizeof
       case showNext.kind
-      when :integer_lit,:float_lit,:string_lit,:char_lit
-        ret=acceptIt
-      when :int,:char,:short,:long,:float,:double,:unsigned,:signed
-        ret=type() #???
-      when :add,:sub,:not #+42, -42
-        ret=unary()
-      when :mul #dereference : *(i+1)
-        acceptIt
-        e=expression
-        ret=Deref.new(e)
       when :lparen
         acceptIt
-        ret=expression #can be a Casting ! (int *)
-        lparen=expect(:rparen)
-
-        #  casted expression ?
-        if lparen.pos.first==showNext.pos.first
-          case showNext.kind
-          when :integer_lit,:float_lit,:string_lit,:char_lit # previous parenth was a cast !
-            casting_type=ret
-            e=acceptIt
-            ret=CastedExpr.new(casting_type,e)
-          when :lparen # (int *) (a+b) => second '(' parenth
-            casting_type=ret
-            acceptIt
-            e=expression
-            expect :rparen
-            ret=CastedExpr.new(casting_type,Parenth.new(e))
-          when :ident # (int *) malloc(...) => IDENT=malloc
-            casting_type=ret
-            e=expression
-            ret=CastedExpr.new(casting_type,e)
-          end
-
-          while showNext.is_a? [:lbrack,:lparen,:dot,:arrow]
-            if par=parenthesized?
-              ret=FunCall.new(ret,par)
-            end
-            if idx=indexed?
-              ret=Index.new(ret,idx)
-            end
-            if dot=doted?
-              ret=Pointed.new(ret,dot)
-            end
-            if arw=arrowed?
-              ret=Arrow.new(ret,arw)
-            end
-          end
-        else
-          ret=Parenth.new(ret) # normal case
-        end
-      when :sizeof
-        ret=sizeOf()
-      when :ampersand,:ident #<======== ident is here
-
-        #new->cle[0][1]
-        a=addressof?() #&(ptr+i)->c
-
-        if showNext.is_a? :lparen
-          ret=expression
-        else
-          ret=expect(:ident)
-        end
-
-        while showNext.is_a? [:lbrack,:lparen,:dot,:arrow]
-          if par=parenthesized?
-            ret=FunCall.new(ret,par)
-          elsif idx=indexed?
-            ret=Index.new(ret,idx)
-          elsif dot=doted?
-            ret=Pointed.new(ret,dot)
-          elsif arw=arrowed?
-            ret=Arrow.new(ret,arw)
-          end
-        end
-
-        if a
-          a.expr=ret
-          ret=a
-        end
-
-      when :lbrace
-        ret=array_or_struct_init()
-      when :struct # ptr= (struct name *) (malloc...)
-        acceptIt
-        ret=Struct.new
-        ret.name=expect(:ident)
-        while showNext.is_a? :mul
-          acceptIt
-          ret=PointerTo.new(ret)
-        end
+        typename
+        expect :rparen
       else
-        raise "unknown term of kind #{showNext.kind}"
+        unary
+      end
+    end
+
+    def postfix
+      indent "postfix : #{showNext}"
+      primary
+      while showNext.is_a? [:lbrack,:lparen,:dot,:inc_op,:dec_op,:ptr_op]
+        case showNext.kind
+        when :lbrack
+          acceptIt
+          expression
+          expect :rbrack
+        when :lparen
+          acceptIt
+          if !showNext.is_a? :rparen
+            argument_expr_list
+          end
+          expect :rparen
+        when :dot
+          acceptIt
+          expect :ident
+        when :ptr_op
+          acceptIt
+          expect :ident
+        when :inc_op
+          acceptIt
+        when :dec_op
+          acceptIt
+        end
       end
       dedent
-      return ret
+    end
+
+    def primary
+      case showNext.kind
+      when :ident
+        acceptIt
+      when :integer_lit
+        acceptIt
+      when :float_lit
+        acceptIt
+      when :string_lit
+        acceptIt
+      when :char_lit
+        acceptIt
+      when :lparen
+        acceptIt
+        expression
+        expect :rparen
+      when :lbrace
+        array_or_struct_init()
+      end
+    end
+
+    def argument_expr_list
+      expression
+      while showNext.is_a? :comma
+        acceptIt
+        expression
+      end
     end
 
     def array_or_struct_init
@@ -850,68 +945,6 @@ module Crokus
       expect :rbrace
       dedent
       return ArrayOrStructInit.new(elements)
-    end
-
-    def sizeOf
-      indent "sizeof"
-      expect :sizeof
-      expect :lparen
-      t=type
-      expect :rparen
-      dedent
-      return Sizeof.new(t)
-    end
-
-    def addressof?
-      if showNext.is_a? :ampersand
-        acceptIt
-      else
-        return nil
-      end
-      return AddressOf.new(nil)
-    end
-
-    def indexed?
-      if showNext.is_a? :lbrack
-        acceptIt
-        e=expression
-        expect :rbrack
-        return e
-      else
-        return false
-      end
-    end
-
-    def parenthesized?
-      ret=[]
-      if showNext.is_a? :lparen
-        acceptIt
-        if !showNext.is_a? :rparen # f()
-          ret << expression #f(a+1
-          while showNext.is_a? :comma #f(a+1,b)
-            acceptIt
-            ret << expression
-          end
-        end
-        expect :rparen
-      else
-        return nil
-      end
-      return ret
-    end
-
-    def doted?
-      if showNext.is_a? :dot
-        acceptIt
-        return expression()
-      end
-    end
-
-    def arrowed?
-      if showNext.is_a? :arrow
-        acceptIt
-        return expression()
-      end
     end
 
   end#class Parser

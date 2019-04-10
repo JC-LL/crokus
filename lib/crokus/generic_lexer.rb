@@ -17,7 +17,8 @@ class GenericLexer
     @rules.unshift [str.to_sym,/#{str}\b/]
   end
 
-  def token token, pattern
+  def token h_token_pattern
+    token,pattern=*h_token_pattern.to_a.first
     @rules << [token, pattern]
   end
 

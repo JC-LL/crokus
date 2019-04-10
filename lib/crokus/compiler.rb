@@ -21,20 +21,17 @@ module Crokus
     end
 
     def header
-      puts "Crokus - (c) JC Le Lann 2016-20" unless options[:mute]
-    end
-
-    def verbose
-      @options[:verbose]
+      puts "Crokus (#{VERSION})- (c) JC Le Lann 2016-20" unless options[:mute]
     end
 
     def compile filename
       header
+      @verbose=@options[:verbose] #ugly
       puts "=> compiling #{filename}" unless options[:mute]
       parse(filename)
       gen_dot
-      visit
-      pretty_print
+      # visit
+      # pretty_print
       return true
     end
 

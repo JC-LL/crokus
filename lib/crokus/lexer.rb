@@ -8,85 +8,90 @@ module Crokus
     def initialize
       super
       ignore /\s+/
+      keyword "auto"
+      keyword "break"
+      keyword "case"
+      keyword "char"
+      keyword "const"
+      keyword "continue"
+      keyword "default"
+      keyword "do"
+      keyword "double"
+      keyword "else"
+      keyword "enum"
+      keyword "extern"
+      keyword "float"
+      keyword "for"
+      keyword "goto"
+      keyword "if"
+      keyword "int"
+      keyword "long"
+      keyword "register"
+      keyword "return"
+      keyword "short"
+      keyword "signed"
+      keyword "sizeof"
+      keyword "static"
+      keyword "struct"
+      keyword "switch"
+      keyword "typedef"
+      keyword "union"
+      keyword "unsigned"
+      keyword "void"
+      keyword "volatile"
+      keyword "while"
 
-      keyword 'for'
-      keyword 'if'
-      keyword 'else'
-      keyword 'break'
-      keyword 'while'
-      keyword 'return'
-      keyword 'struct'
-      keyword 'typedef'
-      keyword 'sizeof'
-      keyword 'switch'
-      keyword 'case'
-      keyword 'default'
-      keyword 'do'
-      keyword 'void'
-      keyword 'goto'
+      token :qmark            => /\?/
+      token :lparen           => /\(/
+      token :rparen           => /\)/
+      token :lbrace           => /\{/
+      token :rbrace           => /\}/
+      token :lbrack           => /\[/
+      token :rbrack           => /\]/
+      token :semicolon        => /;/
+      token :colon            => /:/
+      token :comma            => /\,/
+      token :lcomment         => /\/\*/
+      token :rcomment         => /\*\//
+      token :comment          => /\/\/(.*)/
 
-      keyword 'int'
-      keyword 'char'
-      keyword 'short'
-      keyword 'long'
-      keyword 'float'
-      keyword 'double'
-      keyword 'signed'
-      keyword 'unsigned'
+      token :dot              => /\./
+      token :neq              => /!=/
+      token :not              => /\!/
+      token :eq               => /\=\=/
+      token :assign           => /\=/
+      token :inc_op           => /\+\+/
+      token :add_assign       => /\+\=/
+      token :add              => /\+/
+      token :dec_op           => /\-\-/
+      token :sub_assign       => /\-\=/
+      token :ptr_op           => /\-\>/
+      token :sub              => /\-/
+      token :mul_assign       => /\*=/
+      token :mul              => /\*/
+      token :div_assign       => /\/=/
+      token :div              => /\//
 
-      token :lparen             , /\(/
-      token :rparen             , /\)/
-      token :lbrace             , /\{/
-      token :rbrace             , /\}/
-      token :lbrack             , /\[/
-      token :rbrack             , /\]/
-      token :semicolon          , /;/
-      token :colon              , /:/
-      token :comma              , /\,/
-      token :lcomment           , /\/\*/
-      token :rcomment           , /\*\//
-      token :comment            , /\/\/(.*)/
+      token :oror             => /\|\|/
+      token :lte              => /<=/
+      token :lt               => /</
+      token :gte              => />=/
+      token :gt               => />/
+      token :andand           => /\&\&/
+      token :and              => /\&/
+      token :or               => /\|/
+      token :mod_assign       => /\%=/
+      token :mod              => /\%/
+      token :xor              => /\^/
+      token :sharp            => /#/
 
-      token :dot                , /\./
-      token :neq                , /!=/
-      token :not                , /\!/
-      token :eq                 , /\=\=/
-      token :assign             , /\=/
-      token :addadd             , /\+\+/
-      token :addeq              , /\+\=/
-      token :add                , /\+/
-      token :subsub             , /\-\-/
-      token :subeq              , /\-\=/
-      token :arrow              , /\-\>/
-      token :sub                , /\-/
-      token :muleq              , /\*=/
-      token :mul                , /\*/
-      token :diveq              , /\/=/
-      token :div                , /\//
-
-      token :dbar               , /\|\|/
-      token :lte                , /<=/
-      token :lt                 , /</
-      token :gte                , />=/
-      token :gt                 , />/
-      token :ampersand2         , /&&/
-      token :ampersand          , /\&/
-      token :or                 , /\|/
-      token :modeq              , /\%=/
-      token :mod                , /\%/
-      token :sharp              , /#/
-
-
-      # .............literals.........................
-      token :ident              , /\A[a-zA-Z]\w*/i
-      token :float_lit          , /\d*(\.\d+)(E([+-]?)\d+)?/
-      token :integer_lit        , /\A\d+/
-      token :string_lit         , /"[^"]*"/
-      token :char_lit           , /\A'\\?.'/
-      token :selected_name      , /\w+(\.\w+)+/ # /\S+\w+\.\w+/
-      token :based_lit          , /\d+#\w+(\.\w+)?#(E[+-]?\d+)/
-      token :bit_string_lit     , /(b|o|x)"[^_]\w+"/
-      token :lexer_warning      , /./
+      # .............literals..............................
+      token :ident            => /\A[a-zA-Z]\w*/i
+      token :float_lit        => /\d*(\.\d+)(E([+-]?)\d+)?/
+      token :integer_lit      => /\A\d+/
+      token :string_lit       => /"[^"]*"/
+      token :char_lit         => /\A'\\?.'/
+      token :lexer_warning    => /./
     end
   end
 end
