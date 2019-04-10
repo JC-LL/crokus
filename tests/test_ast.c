@@ -1,8 +1,27 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+// this is a comment
+
+/* this is a in_comment */
+
+/* this is a in_comment
+  that uses several lines
+  ...
+*/
+
+struct im{
+  float a;
+  float b;
+};
+
+typedef struct {
+  int c;
+  int d;
+} paire_t;
+
 int plus(int a,int b){
-    return a+b;
+    return a+b*b;
 }
 
 int main(void){
@@ -10,6 +29,7 @@ int main(void){
   int b=5;
   int *ptr;
   int t[100]= {0,1,2};
+  int i;
 
   struct imag{
     unsigned int a;
@@ -21,13 +41,15 @@ int main(void){
 
   y = a<b+1;
 
-
+  // casting
   y   = (int) (a+b);
   ptr = (int *) &a;
+  ptr = 123 + (int *) &a;
 
-  plus(a,b);
+  // function call
+  a=plus(a,b);
 
-  for(int i=0;i<10;i++){
+  for(i=0;i<10;i++){
      y=a+42;
      y+=b;
   }
@@ -41,6 +63,17 @@ int main(void){
   }
   else{
     printf("again!");
+  }
+
+  switch(a){
+    case 1:
+      puts("joli");
+      break;
+    case 2:
+      a+=1;
+      break;
+    default:
+      y=0;
   }
 
   return 0;
