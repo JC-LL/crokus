@@ -72,6 +72,8 @@ module Crokus
       token :div_assign       => /\/=/
       token :div              => /\//
 
+      token :shift_r          => /\>\>/
+      token :shift_l          => /\<\</
       token :oror             => /\|\|/
       token :lte              => /<=/
       token :lt               => /</
@@ -82,16 +84,20 @@ module Crokus
       token :or               => /\|/
       token :mod_assign       => /\%=/
       token :mod              => /\%/
+      token :xor_assign       => /\^\=/
       token :xor              => /\^/
+
       token :sharp            => /#/
 
       # .............literals..............................
+
       token :ident            => /\A[a-zA-Z]\w*/i
-      token :float_lit        => /\d*(\.\d+)(E([+-]?)\d+)?/
-      token :integer_lit      => /\A\d+/
-      token :string_lit       => /"[^"]*"/
+      token :float_lit        => /\A\d*(\.\d+)(E([+-]?)\d+)?/
+      token :integer_lit      => /\A(0x[0-9a-fA-F]+)|\d+/
+      token :string_lit       => /\A"[^"]*"/
       token :char_lit         => /\A'\\?.'/
       token :lexer_warning    => /./
+
     end
   end
 end

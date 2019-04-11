@@ -65,7 +65,7 @@ module Crokus
     end
     #............ parsing methods ...........
     def parse str
-      # begin
+      begin
         @str=str
         @tokens=Lexer.new.tokenize(str)
         @tokens=remove_comments()
@@ -73,12 +73,12 @@ module Crokus
         show_lexer_warnings(warnings)
         @tokens=@tokens.select{|tok| !tok.is_a? [:newline]}
         ast=design_unit()
-      # rescue Exception => e
-      #   puts "PARSING ERROR : #{e}"
-      #   puts "in C source at line/col #{showNext.pos}"
-      #   puts e.backtrace
-      #   abort
-      # end
+      rescue Exception => e
+        puts "PARSING ERROR : #{e}"
+        puts "in C source at line/col #{showNext.pos}"
+        puts e.backtrace
+        abort
+      end
     end
 
     def show_lexer_warnings warnings
@@ -273,6 +273,8 @@ module Crokus
         else
           expression_statement
         end
+      when :const,:volatile
+        declaration
       when :semicolon
         expression_statement
       else
@@ -436,6 +438,7 @@ module Crokus
 
     def type
       indent "type"
+      type_qualifier?
       case showNext.kind
       when :signed,:unsigned
         acceptIt
@@ -463,6 +466,17 @@ module Crokus
         end
       end
       dedent
+    end
+
+    def type_qualifier?
+      while showNext.is_a? STARTERS_TYPE_QUALIFIER
+        case showNext.kind
+        when :volatile
+          acceptIt
+        when :const
+          acceptIt
+        end
+      end
     end
 
     def parse_if
@@ -592,7 +606,7 @@ module Crokus
     STARTERS_PRIMARY=[:ident,:integer_lit,:float_lit,:string_lit,:char_lit,:lparen]+STARTERS_ARRAY_OR_STRUCT_INIT
     UNARY_OP=[:and,:mul,:add,:sub,:tilde,:not]
     STARTERS_UNARY=[:inc_op,:dec_op,:sizeof]+STARTERS_PRIMARY+UNARY_OP
-    ASSIGN_OP=[:assign,:add_assign,:mul_assign,:div_assign,:mod_assign]
+    ASSIGN_OP=[:assign,:add_assign,:mul_assign,:div_assign,:mod_assign,:xor_assign]
 
     def assign
       indent "assign : #{showNext}"
@@ -688,7 +702,7 @@ module Crokus
     def shiftexp
       indent "shiftexp : #{showNext}"
       additive
-      while showNext.is_a? [:add,:sub]
+      while showNext.is_a? [:shift_l,:shift_r]
         acceptIt
         additive
       end

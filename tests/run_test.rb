@@ -12,7 +12,7 @@ end
 
 compiler=Crokus::Compiler.new
 compiler.options[:mute]=true
-files=Dir["*.c"].sort
+files=Dir["test_*.c"].sort
 nb_tests=files.size
 max_length=files.max_by{|s| s.length}.length+4
 success=0
