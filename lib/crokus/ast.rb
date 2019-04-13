@@ -20,10 +20,16 @@ module Crokus
     end
   end
 
+  class Ident < Ast
+    def initialize tok
+      @tok=tok
+    end
+  end
+
   class Include < Ast
     attr_accessor :name
     attr_accessor :env
-    def initialize name,env=nil
+    def initialize name,env=nil #local or system
       @name=name
       @env=env
     end
@@ -42,7 +48,6 @@ module Crokus
     attr_accessor :name,:specifiers
     def initialize name
       @name=name
-      @specifiers=[]
     end
   end
 
@@ -99,7 +104,7 @@ module Crokus
 
   class Decl < Ast
     attr_accessor :var,:type,:init
-    def initialize var,type,init=nil
+    def initialize type,var,init=nil
       @var,@type,@init=var,type,init
     end
   end
@@ -166,6 +171,27 @@ module Crokus
   end
 
   class Stmt < Ast
+  end
+
+  class LabeledStmt < Stmt
+    attr_accessor :label,:stmt
+    def initialize label,stmt
+      @label,@stmt=label,stmt
+    end
+  end
+
+  class SemicolonStmt < Stmt
+    attr_accessor :tok
+    def initialize tok
+      @tok=tok
+    end
+  end
+
+  class CommaStmt < Stmt
+    attr_accessor :lhs,:rhs
+    def initialize lhs,rhs
+      @lhs,@rhs=lhs,rhs
+    end
   end
 
   class Assign < Stmt
@@ -258,6 +284,13 @@ module Crokus
   class Expr < Ast#decorative
   end
 
+  class CondExpr < Ast
+    attr_accessor :cond,:lhs,:rhs
+    def initialize cond,lhs,rhs
+      @cond,@lhs,@rhs = cond,lhs,rhs
+    end
+  end
+
   class Binary < Expr
     attr_accessor :op,:lhs,:rhs
     def initialize lhs,op,rhs
@@ -286,7 +319,14 @@ module Crokus
     end
   end
 
-  class Index < Expr
+  class Indexed < Expr
+    attr_accessor :lhs,:rhs
+    def initialize l,r
+      @lhs,@rhs=l,r
+    end
+  end
+
+  class Dotted< Expr
     attr_accessor :lhs,:rhs
     def initialize l,r
       @lhs,@rhs=l,r
@@ -297,13 +337,6 @@ module Crokus
     attr_accessor :expr
     def initialize e
       @expr=e
-    end
-  end
-
-  class Pointed < Expr
-    attr_accessor :lhs,:rhs
-    def initialize l,r
-      @lhs,@rhs=l,r
     end
   end
 
@@ -319,6 +352,19 @@ module Crokus
     def initialize elements=[]
       @elements=elements
     end
+  end
+
+  # literals
+  class Literal < Ast
+    def initialize tok
+      @tok=tok
+    end
+  end
+
+  class IntLit < Literal
+  end
+
+  class FloatLit < Literal
   end
 
 end #module

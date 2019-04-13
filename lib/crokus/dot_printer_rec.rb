@@ -36,10 +36,10 @@ module Crokus
     end
 
     def process node,level=0
-
+      #puts "processing #{node}"
       kname=node.class.name.split("::")[1]
       id=node.object_id
-      nodes_decl << "#{id} [label=\"#{kname}\"]"
+      (nodes_decl << "#{id} [label=\"#{kname}\"]")
 
       node.instance_variables.each{|vname|
         ivar=node.instance_variable_get(vname)

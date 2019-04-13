@@ -1,5 +1,6 @@
 require_relative 'ast'
 require_relative 'parser'
+require_relative 'ast_builder'
 require_relative 'dot_printer_rec'
 require_relative 'visitor'
 require_relative 'pretty_printer'
@@ -29,6 +30,7 @@ module Crokus
       @verbose=@options[:verbose] #ugly
       puts "=> compiling #{filename}" unless options[:mute]
       parse(filename)
+      build_ast(filename)
       gen_dot
       # visit
       # pretty_print
@@ -40,6 +42,14 @@ module Crokus
       code=IO.read(filename)
       indent "=> parsing #{filename}"
       @ast=parser.parse(code)
+      dedent
+    end
+
+    def build_ast filename
+      @base_name=File.basename(filename, ".c")
+      code=IO.read(filename)
+      indent "=> building ast #{filename}"
+      @ast=AstBuilder.new.parse(code)
       dedent
     end
 
