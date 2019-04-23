@@ -15,5 +15,5 @@ module Indent
   def say str
     puts " "*@indentation+str if @verbose
   end
-  
+
 end

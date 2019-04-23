@@ -1,6 +1,6 @@
 require_relative 'ast'
 require_relative 'parser'
-require_relative 'ast_builder'
+require_relative 'parser_only'
 require_relative 'dot_printer_rec'
 require_relative 'visitor'
 require_relative 'pretty_printer'
@@ -29,15 +29,15 @@ module Crokus
       header
       @verbose=@options[:verbose] #ugly
       puts "=> compiling #{filename}" unless options[:mute]
+      parse_only(filename)
       parse(filename)
-      build_ast(filename)
       gen_dot
       # visit
       # pretty_print
       return true
     end
 
-    def parse filename
+    def parse_only filename
       @base_name=File.basename(filename, ".c")
       code=IO.read(filename)
       indent "=> parsing #{filename}"
@@ -45,17 +45,17 @@ module Crokus
       dedent
     end
 
-    def build_ast filename
+    def parse filename
       @base_name=File.basename(filename, ".c")
       code=IO.read(filename)
       indent "=> building ast #{filename}"
-      @ast=AstBuilder.new.parse(code)
+      @ast=Parser.new.parse(code)
       dedent
     end
 
     def gen_dot
       dotname="#{base_name}.dot"
-      indent "=> generating dot #{dotname}" unless options[:mute]
+      puts "=> generating dot #{dotname}" unless options[:mute]
       dot=DotPrinter.new.print(ast)
       dot.save_as dotname
       dedent

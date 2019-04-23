@@ -59,7 +59,7 @@ module Crokus
     end
   end
 
-  class PointerTo < Ast
+  class PointerTo < Type
     attr_accessor :type
     def initialize t
       @type=t
