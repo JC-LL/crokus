@@ -19,27 +19,32 @@ module Crokus
       @visited << bb
       @new_succs[bb]=[]
       bb.succs.each_with_index do |succ,idx|
-        cand=find_non_empty_rec(succ)
-        @new_succs[bb] << cand
-        unless @visited.include? cand
-          clean_rec cand
+        cand=find_next_rec(succ)
+        if cand
+          #puts "  |--> #{bb.label} next #{idx} is #{cand.label}"
+          @new_succs[bb] << cand
+          unless @visited.include? cand
+            clean_rec cand
+          end
         end
       end
     end
 
-    def find_non_empty_rec bb
+    def find_next_rec bb
       if bb.size>0
         return bb
       else
-        @cfg.bbs.delete(bb)
-        return find_non_empty_rec(bb.succs.first)
+        if bb.succs.any?
+          @cfg.bbs.delete(bb)
+          return find_next_rec(bb.succs.first)
+        else
+          return bb #ending
+        end
       end
     end
 
     def update
-      @cfg.bbs.each do |bb|
-        bb.succs=@new_succs[bb]
-      end
+      @cfg.bbs.each{|bb| bb.succs=@new_succs[bb]}
     end
 
     def rename

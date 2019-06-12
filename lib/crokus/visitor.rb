@@ -276,7 +276,7 @@ module Crokus
       dedent
     end
 
-    def visitIndex index,args=nil
+    def visitIndexed index,args=nil
       indent "Index"
       index.lhs.accept(self)
       index.rhs.accept(self)

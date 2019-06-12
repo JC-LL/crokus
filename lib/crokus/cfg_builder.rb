@@ -33,7 +33,9 @@ module Crokus
       @cfg=CFG.new(func.name)
       @current=@cfg.starter
       func.body.accept(self)
+      @cfg.print
       @cfg=CFGCleaner.new.clean(@cfg)
+      @cfg.name=Ident.new(Token.create "#{@cfg.name}_clean")
       func.cfg=@cfg
       puts "\t|--> cfg size for '#{func.name}' : #{@cfg.size}"
       @cfg.print
@@ -91,7 +93,7 @@ module Crokus
       @current.to mergeBranch
       #
       @current=falseBranch
-      if_.else.accept(self) #may change @current !
+      if_.else.accept(self) if if_.else #may change @current !
       @current.to mergeBranch
       @current=mergeBranch
     end

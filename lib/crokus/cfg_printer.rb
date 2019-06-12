@@ -12,7 +12,7 @@ module Crokus
       @visited=[]
       visitRec(cfg.starter)
       @code << footer
-      dot_name="#{cfg.name}.dot"
+      dot_name="cfg_#{cfg.name}.dot"
       @code.save_as dot_name
       puts "\t|--> graphviz file saved as '#{dot_name}'"
     end
