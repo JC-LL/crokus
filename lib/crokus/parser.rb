@@ -971,7 +971,7 @@ module Crokus
           e1=FunCall.new(e1,list)
         when :dot
           acceptIt
-          expect :ident
+          e2=Ident.new(expect :ident)
           e1=Dotted.new(e1,e2)
         when :ptr_op
           acceptIt

@@ -32,7 +32,7 @@ module Crokus
       parse_only(filename)
       parse(filename)
       gen_dot
-      # visit
+      #visit
       # pretty_print
       return true
     end

@@ -1,5 +1,3 @@
-require 'pp'
-
 require_relative 'generic_lexer'
 
 module Crokus
