@@ -1,5 +1,5 @@
 # crokus
-C parser written in Ruby, for experiments purpose.
+C parser written in Ruby, for experimental purpose.
 Crokus parses a fair subset of C, using outrageous tricks.
 Crokus generates an AST (abstract syntax tree), that can be visualized using Graphviz.
 

@@ -24,6 +24,10 @@ module Crokus
     def initialize tok
       @tok=tok
     end
+
+    def to_s
+      @tok.val
+    end
   end
 
   class Include < Ast
@@ -47,6 +51,7 @@ module Crokus
   class Type < Ast
     attr_accessor :name,:specifiers
     def initialize name
+      @specifiers=[]
       @name=name
     end
   end
@@ -143,7 +148,7 @@ module Crokus
 
   class FormalArg < Ast
     attr_accessor :name,:type
-    def initialize n,t
+    def initialize t,n
       @name,@type=n,t
     end
   end
@@ -203,6 +208,9 @@ module Crokus
 
   class For < Stmt
     attr_accessor :init,:cond,:increment,:body
+    def initialize
+      @init=[]
+    end
   end
 
   class While < Stmt
@@ -299,9 +307,10 @@ module Crokus
   end
 
   class Unary < Expr
-    attr_accessor :op,:rhs
-    def initialize op,rhs
+    attr_accessor :op,:rhs,:postfix
+    def initialize op,rhs,postfix=nil
       @op,@rhs=op,rhs
+      @postfix=postfix
     end
   end
 
@@ -358,6 +367,10 @@ module Crokus
   class Literal < Ast
     def initialize tok
       @tok=tok
+    end
+
+    def to_s
+      @tok.val
     end
   end
 

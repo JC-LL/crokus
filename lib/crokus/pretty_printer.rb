@@ -305,6 +305,14 @@ module Crokus
     end
 
     #..........expresions..........
+    def visitIdent ident,args=nil
+      return ident.to_s
+    end
+
+    def visitIntLit lit,args=nil
+      return lit.to_s
+    end
+
     def visitBinary expr,args=nil
       lhs=expr.lhs.accept(self)
       op =expr.op.accept(self)
@@ -315,7 +323,7 @@ module Crokus
     def visitUnary unary,args=nil
       op=unary.op.accept(self)
       e =unary.rhs.accept(self)
-      return "#{op}#{e}"
+      return unary.postfix ? "#{e}#{op}" : "#{op}#{e}"
     end
 
     def visitParenth par,args=nil
@@ -329,7 +337,7 @@ module Crokus
       return "#{lhs}->#{rhs}"
     end
 
-    def visitIndex index,args=nil
+    def visitIndexed index,args=nil
       lhs=index.lhs.accept(self)
       rhs=index.rhs.accept(self)
       return "#{lhs}[#{rhs}]"

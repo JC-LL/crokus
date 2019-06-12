@@ -551,8 +551,8 @@ module Crokus
       forloop=For.new
       expect :for
       expect :lparen
-      forloop.init=expression_statement()
-      forloop.cond=expression_statement()
+      forloop.init << expression_statement()
+      forloop.cond = expression_statement()
       forloop.increment=expression()
       expect :rparen
       forloop.body=statement()
@@ -974,12 +974,11 @@ module Crokus
           e2=Ident.new(expect :ident)
           e1=Dotted.new(e1,e2)
         when :ptr_op
-          acceptIt
+          op=acceptIt
           expect :ident
-        when :inc_op
-          acceptIt
-        when :dec_op
-          acceptIt
+        when :inc_op,:dec_op
+          op=acceptIt
+          e1=Unary.new(op,e1,true)
         end
       end
       dedent
