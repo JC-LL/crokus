@@ -178,6 +178,12 @@ module Crokus
     end
 
     #...........stmts...............
+    def visitCommaStmt comma,args=nil
+      lhs=comma.lhs.accept(self)
+      rhs=comma.rhs.accept(self)
+      ret="#{lhs},#{rhs}"
+      ret
+    end
 
     def visitAssign assign,args=nil
       lhs=assign.lhs.accept(self)
@@ -192,6 +198,13 @@ module Crokus
       op =accu.op.accept(self)
       rhs=accu.rhs.accept(self) if accu.rhs # i++
       ret="#{lhs}#{op}#{rhs};"
+      ret
+    end
+
+    def visitPostFixAccu accu,args=nil
+      lhs=accu.lhs.accept(self) if accu.lhs #++i
+      op =accu.op.accept(self)
+      ret="#{lhs}#{op};"
       ret
     end
 
@@ -268,11 +281,11 @@ module Crokus
 
     def visitWhile while_,args=nil
       cond=while_.cond.accept(self)
-      body=while_.body.collect{|stmt| stmt.accept(self,:body)}
+      body=while_.body.accept(self)
       code=Code.new
       code << "while (#{cond})"
       code.indent=2
-      body.each{|stmt| code << stmt}
+      code << body
       code.indent=0
       return code
     end
@@ -317,6 +330,11 @@ module Crokus
       lhs=expr.lhs.accept(self)
       op =expr.op.accept(self)
       rhs=expr.rhs.accept(self)
+      case op
+      when "+","-","*","/"
+      else
+        op=" "+op+" "
+      end
       return "#{lhs}#{op}#{rhs}"
     end
 
@@ -383,6 +401,14 @@ module Crokus
       code.indent=0
       code << "}"
       return code
+    end
+
+    #================= IR ============
+    def visitITE ite,args=nil
+      cond=ite.cond.accept(self)
+      label1=ite.trueBranch.label
+      label2=ite.falseBranch.label
+      "ite #{cond},#{label1},#{label2}"
     end
   end #class Visitor
 end #module

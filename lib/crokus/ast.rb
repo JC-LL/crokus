@@ -123,6 +123,7 @@ module Crokus
 
   class Function < Ast
     attr_accessor :name,:type,:args,:body
+    attr_accessor :cfg
     def initialize name,ret_type,args=[],body=[]
       @name,@type=name,ret_type
       @args=args
@@ -215,7 +216,7 @@ module Crokus
 
   class While < Stmt
     attr_accessor :cond,:body
-    def initialize cond,body=[]
+    def initialize cond,body
       @cond,@body=cond,body
     end
   end
@@ -258,6 +259,12 @@ module Crokus
   class Accu < Assign
     def initialize lhs,tok,rhs=nil
       super(lhs,tok,rhs)
+    end
+  end
+
+  class PostFixAccu < Assign
+    def initialize lhs,tok
+      super(lhs,tok,nil)
     end
   end
 

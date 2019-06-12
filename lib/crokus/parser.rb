@@ -541,7 +541,7 @@ module Crokus
       expect :while
       cond=expression()
       body=[]
-      body << statement()
+      body=statement()
       dedent
       return While.new(cond,body)
     end
@@ -640,7 +640,7 @@ module Crokus
     STARTERS_PRIMARY=[:ident,:integer_lit,:float_lit,:string_lit,:char_lit,:lparen]+STARTERS_ARRAY_OR_STRUCT_INIT
     UNARY_OP=[:and,:mul,:add,:sub,:tilde,:not]
     STARTERS_UNARY=[:inc_op,:dec_op,:sizeof]+STARTERS_PRIMARY+UNARY_OP
-    ASSIGN_OP=[:assign,:add_assign,:mul_assign,:div_assign,:mod_assign,:xor_assign]
+    ASSIGN_OP=[:assign,:add_assign,:sub_assign,:mul_assign,:div_assign,:mod_assign,:xor_assign]
 
     def assign
       indent "assign : #{showNext}"
@@ -978,7 +978,7 @@ module Crokus
           expect :ident
         when :inc_op,:dec_op
           op=acceptIt
-          e1=Unary.new(op,e1,true)
+          e1=PostFixAccu.new(e1,op)
         end
       end
       dedent
@@ -1008,11 +1008,13 @@ module Crokus
     end
 
     def argument_expr_list
-      expression
+      list=[]
+      list << expression
       while showNext.is_a? :comma
         acceptIt
-        expression
+        list << expression
       end
+      list
     end
 
     def array_or_struct_init

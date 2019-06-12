@@ -1,9 +1,10 @@
 require_relative 'ast'
+require_relative 'ast_printer'
 require_relative 'parser'
 require_relative 'parser_only'
-require_relative 'dot_printer_rec'
 require_relative 'visitor'
 require_relative 'pretty_printer'
+require_relative 'cfg_builder'
 
 module Crokus
 
@@ -34,6 +35,7 @@ module Crokus
       gen_dot
       #visit
       pretty_print
+      build_cfg if options[:build_cfg]
       return true
     end
 
@@ -56,7 +58,7 @@ module Crokus
     def gen_dot
       dotname="#{base_name}.dot"
       puts "=> generating dot #{dotname}" unless options[:mute]
-      dot=DotPrinter.new.print(ast)
+      dot=AstPrinter.new.print(ast)
       dot.save_as dotname
       dedent
     end
@@ -68,12 +70,24 @@ module Crokus
     end
 
     def pretty_print
-      indent "=> pretty_print" unless options[:mute]
+      puts "=> pretty_print" unless options[:mute]
       code=PrettyPrinter.new.visit(ast)
       pp_c=@base_name+"_pp.c"
       File.open(pp_c,'w'){|f| f.puts code}
-      puts "...saved as #{pp_c}" unless options[:mute]
+      puts "   |--> saved as #{pp_c}" unless options[:mute]
       dedent
+    end
+
+    def build_cfg
+      puts "=> building CFGs" unless options[:mute]
+      builder=CFGBuilder.new
+      builder.build(@ast)
+    end
+
+    def clean_cfg
+      puts "=> cleaning CFGs" unless options[:mute]
+      cleaner=CFGCleaner.new
+      builder.clean(@ast)
     end
 
   end

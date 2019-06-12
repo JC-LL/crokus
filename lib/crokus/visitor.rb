@@ -2,6 +2,7 @@
 require_relative 'code'
 
 module Crokus
+
   class Visitor
 
     include Indent
@@ -21,6 +22,7 @@ module Crokus
       indent "DesignUnit"
       du.list.each{|e| e.accept(self)}
       dedent
+      du
     end
 
     def visitDecl decl,args=nil
@@ -29,12 +31,14 @@ module Crokus
       decl.var.accept(self)
       decl.init.accept(self) if decl.init
       dedent
+      decl
     end
 
     def visitInclude include,args=nil
       indent "Include"
       include.name.accept(self)
       dedent
+      include
     end
 
     def visitDefine define,args=nil
@@ -42,6 +46,7 @@ module Crokus
       define.name.accept(self)
       define.expr.accept(self)
       dedent
+      define
     end
 
     def visitTypedef typdef,args=nil
@@ -49,6 +54,7 @@ module Crokus
       typdef.type.accept(self)
       typdef.name.accept(self)
       dedent
+      typedef
     end
 
     def visitType type,args=nil
@@ -56,12 +62,14 @@ module Crokus
       type.specifiers.each{|spec| spec.accept(self)}
       type.name.accept(self)
       dedent
+      type
     end
 
     def visitPointerTo pto,args=nil
       indent "PointerTo"
       pto.type.accept(self)
       dedent
+      pto
     end
 
     def visitArrayOf aof,args=nil
@@ -69,17 +77,20 @@ module Crokus
       aof.type.accept(self)
       aof.size.accept(self) if aof.size
       dedent
+      aof
     end
 
     def visitStruct struct,args=nil
       indent "Struct"
       dedent
+      struct
     end
 
     def visitCasting cast,args=nil
       indent "Casting"
       cast.type.accept(self)
       dedent
+      cast
     end
 
     def visitCastedExpr cexpr,args=nil
@@ -87,6 +98,7 @@ module Crokus
       cexpr.type.accept(self)
       cexpr.expr.accept(self)
       dedent
+      cexpr
     end
 
     #......... end of types..........
@@ -98,6 +110,7 @@ module Crokus
       func.args.each{|arg| arg.accept(self)}
       func.body.accept(self)
       dedent
+      func
     end
 
     def visitFunctionProto func,args=nil
@@ -106,6 +119,7 @@ module Crokus
       func.name.accept(self)
       func.args.each{|arg| arg.accept(self)}
       dedent
+      func
     end
 
     def visitFormalArg formalArg,args=nil
@@ -113,6 +127,7 @@ module Crokus
       formalArg.name.accept(self) if formalArg.name # e.g : main(void)
       formalArg.type.accept(self)
       dedent
+      formalArg
     end
 
     #...........stmts...............
@@ -123,6 +138,7 @@ module Crokus
       assign.op.accept(self)
       assign.rhs.accept(self)
       dedent
+      assign
     end
 
     def visitAccu accu,args=nil
@@ -131,6 +147,13 @@ module Crokus
       accu.op.accept(self)
       accu.rhs.accept(self) if accu.rhs # i++
       dedent
+      accu
+    end
+
+    def visitPostFixAccu accu,args=nil
+      lhs=accu.lhs.accept(self) if accu.lhs #++i
+      op =accu.op.accept(self)
+      accu
     end
 
     def visitFunCall fcall,args=nil
@@ -138,6 +161,7 @@ module Crokus
       fcall.name.accept(self)
       fcall.args.each{|arg| arg.accept(self)}
       dedent
+      fcall
     end
 
     def visitFor for_,args=nil
@@ -147,6 +171,7 @@ module Crokus
       for_.increment.accept(self)
       for_.body.accept(self)
       dedent
+      for_
     end
 
     def visitReturn ret,args=nil
@@ -160,6 +185,7 @@ module Crokus
       if_.cond.accept(self)
       if_.body.accept(self)
       dedent
+      if_
     end
 
     def visitSwitch sw_,args=nil
@@ -167,6 +193,7 @@ module Crokus
       sw_.expr.accept(self)
       sw_.cases.each{|case_| case_.accept(self)}
       dedent
+      sw_
     end
 
     def visitCase case_,args=nil
@@ -174,6 +201,7 @@ module Crokus
       case_.expr.accept(self)
       case_.body.accept(self)
       dedent
+      case_
     end
 
     def visitWhile while_,args=nil
@@ -181,6 +209,7 @@ module Crokus
       while_.cond.accept(self)
       while_.body.each{|stmt| stmt.accept(self)}
       dedent
+      while_
     end
 
     def visitDoWhile while_,args=nil
@@ -188,16 +217,19 @@ module Crokus
       while_.cond.accept(self)
       while_.body.each{|stmt| stmt.accept(self)}
       dedent
+      while_
     end
 
     def visitBreak brk,args=nil
       indent "Break"
       dedent
+      brk
     end
 
     def visitLabelledStmt label,args=nil
       indent "LabelledStmt"
       dedent
+      label
     end
 
 
@@ -205,19 +237,30 @@ module Crokus
       indent "Goto"
       goto.label.accept(self)
       dedent
+      goto
     end
     #..........expresions..........
+    def visitIdent ident,args=nil
+      ident
+    end
+
+    def visitIntLit lit,args=nil
+      lit
+    end
+
     def visitBinary expr,args=nil
       indent "Binary"
       expr.lhs.accept(self)
       expr.op.accept(self)
       expr.rhs.accept(self)
       dedent
+      expr
     end
 
     def visitUnary unary,args=nil
       indent "Unary"
       dedent
+      unary
     end
 
     def visitParenth par,args=nil

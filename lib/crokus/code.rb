@@ -24,7 +24,8 @@ class Code
   end
 
   def finalize
-    @lines.join("\n") if @lines.any?
+    return @lines.join("\n") if @lines.any?
+    ""
   end
 
   def newline

@@ -39,6 +39,10 @@ module Crokus
         exit(true)
       end
 
+      parser.on("--cfg", "build cfg") do
+        options[:build_cfg] = true
+      end
+
       parser.on("-c FILE", "source file>") do |file|
         options[:cfile] = file
       end
