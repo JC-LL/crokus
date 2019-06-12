@@ -5,6 +5,11 @@ module Crokus
       name = self.class.name.split(/::/)[1]
       visitor.send("visit#{name}".to_sym, self ,arg) # Metaprograming !
     end
+
+    def str
+      ppr=PrettyPrinter.new
+      self.accept(ppr)
+    end
   end
 
   #......... AST nodes ..........

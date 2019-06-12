@@ -5,6 +5,7 @@ require_relative 'parser_only'
 require_relative 'visitor'
 require_relative 'pretty_printer'
 require_relative 'cfg_builder'
+require_relative 'tac_builder'
 
 module Crokus
 
@@ -36,6 +37,7 @@ module Crokus
       #visit
       pretty_print
       build_cfg if options[:build_cfg]
+      build_tac if options[:build_tac]
       return true
     end
 
@@ -84,10 +86,10 @@ module Crokus
       builder.build(@ast)
     end
 
-    def clean_cfg
-      puts "=> cleaning CFGs" unless options[:mute]
-      cleaner=CFGCleaner.new
-      builder.clean(@ast)
+    def build_tac
+      puts "=> building TAC" unless options[:mute]
+      builder=TACBuilder.new
+      builder.visit(@ast)
     end
 
   end

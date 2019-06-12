@@ -131,7 +131,12 @@ module Crokus
     end
 
     #...........stmts...............
-
+    def visitCommaStmt comma,args=nil
+      lhs=comma.lhs.accept(self)
+      rhs=comma.rhs.accept(self)
+      comma
+    end
+    
     def visitAssign assign,args=nil
       indent "Assign"
       assign.lhs.accept(self)

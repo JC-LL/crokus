@@ -43,6 +43,10 @@ module Crokus
         options[:build_cfg] = true
       end
 
+      parser.on("--tac", "build tac") do
+        options[:build_tac] = true
+      end
+
       parser.on("-c FILE", "source file>") do |file|
         options[:cfile] = file
       end
