@@ -39,12 +39,16 @@ module Crokus
         exit(true)
       end
 
-      parser.on("--cfg", "build cfg") do
+      parser.on("--cfg", "build control-flow graph") do
         options[:build_cfg] = true
       end
 
-      parser.on("--tac", "build tac") do
+      parser.on("--tac", "build three address code (TAC) CFG") do
         options[:build_tac] = true
+      end
+
+      parser.on("--emit_ir", "dump textual IR from TAC CFG") do
+        options[:emit_ir] = true
       end
 
       parser.on("-c FILE", "source file>") do |file|

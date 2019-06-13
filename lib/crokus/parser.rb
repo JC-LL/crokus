@@ -445,21 +445,22 @@ module Crokus
       end
     end
 
-    def func_call as_procedure=false
-      indent "func_call"
-      name=expect(:ident)
-      expect :lparen
-      args=[]
-      while !showNext.is_a? :rparen
-        args << expression()
-        if showNext.is_a? :comma
-          acceptIt
-        end
-      end
-      expect :rparen
-      dedent
-      FunCall.new(name,args,as_procedure)
-    end
+    # apparently UNUSED.
+    # def func_call as_procedure=false
+    #   indent "func_call"
+    #   name=expect(:ident)
+    #   expect :lparen
+    #   args=[]
+    #   while !showNext.is_a? :rparen
+    #     args << expression()
+    #     if showNext.is_a? :comma
+    #       acceptIt
+    #     end
+    #   end
+    #   expect :rparen
+    #   dedent
+    #   FunCall.new(name,args,as_procedure)
+    # end
 
     def parse_type
       indent "parse_type"
@@ -964,11 +965,12 @@ module Crokus
           e1=Indexed.new(e1,e2)
         when :lparen
           acceptIt
+          args=[]
           if !showNext.is_a? :rparen
-            list=argument_expr_list
+            args=argument_expr_list
           end
           expect :rparen
-          e1=FunCall.new(e1,list)
+          e1=FunCall.new(e1,args)
         when :dot
           acceptIt
           e2=Ident.new(expect :ident)
@@ -994,9 +996,9 @@ module Crokus
       when :float_lit
         return FloatLit.new(acceptIt)
       when :string_lit
-        return acceptIt
+        return StrLit.new(acceptIt)
       when :char_lit
-        return acceptIt
+        return CharLit.new(acceptIt)
       when :lparen
         acceptIt
         e=expression

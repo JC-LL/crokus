@@ -23,6 +23,10 @@ module Crokus
       return c_code
     end
 
+    def visitToken tok, args=nil
+      tok.to_s
+    end
+
     def visitDesignUnit du,args=nil
       indent "DesignUnit"
       du.list.each{|e| code << e.accept(self,:body)}
@@ -208,12 +212,12 @@ module Crokus
       ret
     end
 
-    def visitFunCall fcall,args=nil
+    def visitFunCall fcall,as_procedure=nil
       fname=fcall.name.accept(self)
       argus=fcall.args.collect{|argu| argu.accept(self)}
       argus=argus.join(',')
       ret="#{fname}(#{argus})"
-      ret+=";" if fcall.as_procedure
+      ret+=";" if as_procedure
       ret
     end
 
@@ -326,6 +330,14 @@ module Crokus
       return lit.to_s
     end
 
+    def visitStrLit lit,args=nil
+      return lit.to_s
+    end
+
+    def visitCharLit lit,args=nil
+      return lit.to_s
+    end
+
     def visitBinary expr,args=nil
       lhs=expr.lhs.accept(self)
       op =expr.op.accept(self)
@@ -396,7 +408,7 @@ module Crokus
       code << "{"
       code.indent=2
       body.each do |stmt|
-        code << stmt.accept(self)
+        code << stmt.accept(self,true)
       end
       code.indent=0
       code << "}"

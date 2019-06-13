@@ -45,6 +45,12 @@ module Crokus
 
     def update
       @cfg.bbs.each{|bb| bb.succs=@new_succs[bb]}
+      @cfg.bbs.each{|bb|
+        if (ite=bb.stmts.last).is_a? ITE
+          ite.trueBranch=bb.succs.first
+          ite.falseBranch=bb.succs.last
+        end
+      }
     end
 
     def rename

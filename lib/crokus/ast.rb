@@ -15,8 +15,8 @@ module Crokus
   #......... AST nodes ..........
   class DesignUnit < Ast
     attr_accessor :list
-    def initialize
-      @list=[]
+    def initialize list=[]
+      @list=list
     end
 
     def <<(e)
@@ -26,6 +26,7 @@ module Crokus
   end
 
   class Ident < Ast
+    attr_accessor :tok
     def initialize tok
       @tok=tok
     end
@@ -55,17 +56,17 @@ module Crokus
 
   class Type < Ast
     attr_accessor :name,:specifiers
-    def initialize name
-      @specifiers=[]
+    def initialize name,specifiers=[]
+      @specifiers=specifiers
       @name=name
     end
   end
 
   class Struct < Type
     attr_accessor :decls
-    def initialize name=nil
+    def initialize name=nil,decls=[]
       super(name)
-      @decls=[]
+      @decls=decls
     end
   end
 
@@ -129,7 +130,7 @@ module Crokus
   class Function < Ast
     attr_accessor :name,:type,:args,:body
     attr_accessor :cfg
-    def initialize name,ret_type,args=[],body=[]
+    def initialize name,ret_type,args=[],body=nil
       @name,@type=name,ret_type
       @args=args
       @body=body if body
@@ -145,10 +146,9 @@ module Crokus
   end
 
   class FunCall < Ast
-    attr_accessor :name,:args,:as_procedure
-    def initialize name,args,as_procedure=false
+    attr_accessor :name,:args
+    def initialize name,args=[]
       @name,@args=name,args
-      @as_procedure=as_procedure
     end
   end
 
@@ -214,8 +214,8 @@ module Crokus
 
   class For < Stmt
     attr_accessor :init,:cond,:increment,:body
-    def initialize
-      @init=[]
+    def initialize init=[],cond=nil,increment=nil,body=nil
+      @init,@cond,@increment,@body=init,cond,increment,body
     end
   end
 
@@ -228,7 +228,7 @@ module Crokus
 
   class DoWhile < Stmt
     attr_accessor :cond,:body
-    def initialize cond,body=[]
+    def initialize cond,body=nil
       @cond,@body=cond,body
     end
   end
@@ -377,6 +377,7 @@ module Crokus
 
   # literals
   class Literal < Ast
+    attr_accessor :tok
     def initialize tok
       @tok=tok
     end
@@ -390,6 +391,12 @@ module Crokus
   end
 
   class FloatLit < Literal
+  end
+
+  class StrLit < Literal
+  end
+
+  class CharLit < Literal
   end
 
 end #module

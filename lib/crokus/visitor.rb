@@ -18,6 +18,10 @@ module Crokus
       ast.accept(self)
     end
 
+    def visitToken tok, args=nil
+      tok
+    end
+
     def visitDesignUnit du,args=nil
       indent "DesignUnit"
       du.list.each{|e| e.accept(self)}
@@ -136,13 +140,11 @@ module Crokus
       rhs=comma.rhs.accept(self)
       comma
     end
-    
+
     def visitAssign assign,args=nil
-      indent "Assign"
       assign.lhs.accept(self)
       assign.op.accept(self)
       assign.rhs.accept(self)
-      dedent
       assign
     end
 
@@ -183,6 +185,7 @@ module Crokus
       indent "Return"
       ret.expr.accept(self) if ret.expr
       dedent
+      ret
     end
 
     def visitIf if_,args=nil
@@ -250,6 +253,14 @@ module Crokus
     end
 
     def visitIntLit lit,args=nil
+      lit
+    end
+
+    def visitStrLit lit,args=nil
+      lit
+    end
+
+    def visitCharLit lit,args=nil
       lit
     end
 

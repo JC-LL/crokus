@@ -18,10 +18,8 @@ class Token
     end
   end
 
-  def accept visitor
-    visitor.indent "tok:#{val} #{pos}"
-    visitor.dedent
-    self.to_s
+  def accept visitor,arg=nil
+    visitor.visitToken(self,arg)
   end
 
   def self.create str

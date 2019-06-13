@@ -1,11 +1,11 @@
 module Crokus
 
-  class TACBuilder < Visitor
+  class TACBuilder < Transformer
 
     OP_ASSIGN=Token.new([:assign,"=",[0,0]])
 
     def visitFunction func,args=nil
-      puts "=> tac builder for '#{func.name}'"
+      puts "   |--> tac builder for '#{func.name}'"
       build func.cfg
     end
 
@@ -25,12 +25,12 @@ module Crokus
     end
 
     def visit_rec bb
-      puts "- visiting #{bb.label}"
+      #puts "- visiting #{bb.label}"
       @visited << bb
       @current=bb
       @new_stmts=[]
       bb.stmts.each do |stmt|
-        puts "... "+stmt.str
+        #puts "... "+stmt.str
         @new_stmts << stmt.accept(self)
       end
       bb.stmts=@new_stmts
@@ -50,12 +50,6 @@ module Crokus
         ret.cond=tmp
       end
       ret
-    end
-
-    def visitAssign assign,args=nil
-      lhs=assign.lhs.accept(self)
-      rhs=assign.rhs.accept(self)
-      Assign.new(lhs,assign.op,rhs)
     end
 
     def visitBinary bin,args=nil
