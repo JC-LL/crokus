@@ -1,7 +1,7 @@
 require_relative 'ast'
 require_relative 'ast_printer'
 require_relative 'parser'
-require_relative 'parser_only'
+#require_relative 'parser_only'
 require_relative 'visitor'
 require_relative 'transformer'
 require_relative 'pretty_printer'
@@ -24,40 +24,36 @@ module Crokus
     end
 
     def header
-      puts "Crokus (#{VERSION})- (c) JC Le Lann 2016-20" unless options[:mute]
+
     end
 
     def compile filename
       header
-      @verbose=@options[:verbose] #ugly
-      parse_only(filename)
       parse(filename)
-      gen_dot
-      #visit
-      transform
-      pretty_print
-      build_cfg if options[:build_cfg]
-      build_tac if options[:build_tac]
-      emit_ir   if options[:emit_ir]
+      draw_ast     if options[:draw_ast]
+      pretty_print if options[:pp]
+      build_cfg
+      build_tac
+      emit_ir      if options[:emit_ir]
       return true
-    end
-
-    def parse_only filename
-      @base_name=File.basename(filename, ".c")
-      code=IO.read(filename)
-      puts "=> parsing #{filename}" unless options[:mute]
-      @ast=parser.parse(code)
     end
 
     def parse filename
       @base_name=File.basename(filename, ".c")
       code=IO.read(filename)
+      puts "=> parsing #{filename}" unless options[:mute]
       @ast=Parser.new.parse(code)
     end
 
-    def gen_dot tree=nil,filename=nil
+    # def parse filename
+    #   @base_name=File.basename(filename, ".c")
+    #   code=IO.read(filename)
+    #   @ast=Parser.new.parse(code)
+    # end
+
+    def draw_ast tree=nil,filename=nil
       dotname=filename || "#{base_name}.dot"
-      puts "   |--> generating dot #{dotname}" unless options[:mute]
+      puts "   |--> drawing AST '#{dotname}'" unless options[:mute]
       ast_ = tree || @ast
       dot=AstPrinter.new.print(ast_)
       dot.save_as dotname
@@ -67,7 +63,7 @@ module Crokus
       puts "=> dummy transform"
       ast_t= Transformer.new.transform(ast)
       dotname="#{base_name}_trans.dot"
-      gen_dot ast_t,dotname
+      draw_ast ast_t,dotname
     end
 
     def visit

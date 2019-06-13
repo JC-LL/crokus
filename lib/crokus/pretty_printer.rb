@@ -197,14 +197,6 @@ module Crokus
       ret
     end
 
-    def visitAccu accu,args=nil
-      lhs=accu.lhs.accept(self) if accu.lhs #++i
-      op =accu.op.accept(self)
-      rhs=accu.rhs.accept(self) if accu.rhs # i++
-      ret="#{lhs}#{op}#{rhs};"
-      ret
-    end
-
     def visitPostFixAccu accu,args=nil
       lhs=accu.lhs.accept(self) if accu.lhs #++i
       op =accu.op.accept(self)

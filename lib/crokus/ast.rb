@@ -261,12 +261,6 @@ module Crokus
     end
   end
 
-  class Accu < Assign
-    def initialize lhs,tok,rhs=nil
-      super(lhs,tok,rhs)
-    end
-  end
-
   class PostFixAccu < Assign
     def initialize lhs,tok
       super(lhs,tok,nil)

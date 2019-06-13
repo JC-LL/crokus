@@ -583,24 +583,6 @@ module Crokus
       return s
     end
 
-    def accu
-      indent "accu"
-      #expect(:ident)
-      lhs=expression
-      case showNext.kind
-      when :addadd,:subsub
-        tok=acceptIt
-      when :addeq,:subeq
-        tok=acceptIt
-        e=expression
-      else
-        show_line(showNext.pos)
-        raise "unknown accumulator at #{showNext.pos}"
-      end
-      dedent
-      Accu.new(lhs,tok,e)
-    end
-
     def parse_body
       body=Body.new
       expect :lbrace

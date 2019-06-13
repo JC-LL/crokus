@@ -20,12 +20,17 @@ module Crokus
       end
     end
 
+    def header
+      puts "Crokus (#{VERSION})- (c) JC Le Lann 2016-20"
+    end
+
     private
     def parse_options(arguments)
-
-      size=arguments.size
+      header
 
       parser = OptionParser.new
+
+      no_arguments=arguments.empty?
 
       options = {}
 
@@ -34,30 +39,38 @@ module Crokus
         exit(true)
       end
 
+      parser.on("--pp", "pretty print back source code ") do
+        options[:pp] = true
+      end
+
+      parser.on("--ast", "draw abstract syntax tree (AST)") do
+        options[:draw_ast] = true
+      end
+
+      parser.on("--cfg", "draw control-flow graphs for each function") do
+        options[:draw_cfg] = true
+      end
+
+      parser.on("--tac", "draw three address code (TAC) CFG") do
+        options[:draw_cfg_tac] = true
+      end
+
+      parser.on("--emit-ir", "dump textual IR from TAC CFG") do
+        options[:emit_ir] = true
+      end
+
       parser.on("-v", "--version", "Show version number") do
         puts VERSION
         exit(true)
       end
 
-      parser.on("--cfg", "build control-flow graph") do
-        options[:build_cfg] = true
-      end
-
-      parser.on("--tac", "build three address code (TAC) CFG") do
-        options[:build_tac] = true
-      end
-
-      parser.on("--emit_ir", "dump textual IR from TAC CFG") do
-        options[:emit_ir] = true
-      end
-
-      parser.on("-c FILE", "source file>") do |file|
+      parser.on("-c FILE", "source file") do |file|
         options[:cfile] = file
       end
 
       parser.parse!(arguments)
 
-      if size==0
+      if no_arguments
         puts parser
       end
 

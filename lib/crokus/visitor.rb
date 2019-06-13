@@ -147,16 +147,7 @@ module Crokus
       assign.rhs.accept(self)
       assign
     end
-
-    def visitAccu accu,args=nil
-      indent "Accu"
-      accu.lhs.accept(self) if accu.lhs #++i
-      accu.op.accept(self)
-      accu.rhs.accept(self) if accu.rhs # i++
-      dedent
-      accu
-    end
-
+    
     def visitPostFixAccu accu,args=nil
       lhs=accu.lhs.accept(self) if accu.lhs #++i
       op =accu.op.accept(self)

@@ -124,13 +124,6 @@ module Crokus
       Assign.new(lhs,op,rhs)
     end
 
-    def visitAccu accu,args=nil
-      lhs=accu.lhs.accept(self) if accu.lhs #++i
-      op=accu.op.accept(self)
-      rhs=accu.rhs.accept(self) if accu.rhs # i++
-      Accu.new(lhs,tok,rhs)
-    end
-
     def visitPostFixAccu accu,args=nil
       lhs=accu.lhs.accept(self) if accu.lhs #++i
       op=accu.op.accept(self)

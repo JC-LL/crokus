@@ -30,7 +30,6 @@ module Crokus
       @current=bb
       @new_stmts=[]
       bb.stmts.each do |stmt|
-        #puts "... "+stmt.str
         @new_stmts << stmt.accept(self)
       end
       bb.stmts=@new_stmts
@@ -39,6 +38,26 @@ module Crokus
           visit_rec(bb)
         end
       end
+    end
+
+    def visitAssign assign,args=nil
+      assign_1= super(assign)
+      if assign_1.lhs.is_a? Indexed
+        if (rhs=assign_1.rhs).is_a? Indexed
+          rhs=rhs.accept(self)
+          tmp=new_tmp()
+          @new_stmts << Assign.new(tmp,OP_ASSIGN,rhs)
+          assign_1.rhs=tmp
+        end
+      end
+      unless assign.op.kind==:assign
+        rhs=assign_1.rhs
+        rhs.accept(self)
+        tmp=new_tmp()
+        @new_stmts << Assign.new(tmp,OP_ASSIGN,rhs)
+        assign_1.rhs=tmp
+      end
+      assign_1
     end
 
     def visitITE ite,args=nil
@@ -54,16 +73,29 @@ module Crokus
 
     def visitBinary bin,args=nil
       ret=Binary.new(bin.lhs,bin.op,bin.rhs)
-      if bin.lhs.is_a? Binary
+      if bin.lhs.respond_to? :lhs #Binary,Indexed,etc
         lhs=bin.lhs.accept(self)
         tmp=new_tmp()
         @new_stmts << Assign.new(tmp,OP_ASSIGN,lhs)
         ret.lhs=tmp
       end
-      if bin.rhs.is_a? Binary
+      if bin.rhs.respond_to? :lhs #Binary,Indexed,etc
         rhs=bin.rhs.accept(self)
         tmp=new_tmp()
         @new_stmts << Assign.new(tmp,OP_ASSIGN,rhs)
+        ret.rhs=tmp
+      end
+      return ret
+    end
+
+    def visitIndexed idx,args=nil
+      lhs=idx.lhs.accept(self)
+      ret=Indexed.new(lhs,idx.rhs)
+      #if idx.rhs.is_a? Binary # WARNING : what about Indexed ? etc
+      if idx.rhs.respond_to? :lhs # WARNING : Indexed! Pointed! etc
+        lhs=idx.rhs.accept(self)
+        tmp=new_tmp()
+        @new_stmts << Assign.new(tmp,OP_ASSIGN,lhs)
         ret.rhs=tmp
       end
       return ret
