@@ -525,7 +525,17 @@ module Crokus
       end
       cond=expression()
       expect :rparen if lparen
-      body=statement()
+      body=Body.new
+      if showNext.is_a? :lbrace
+        lbrace=acceptIt
+      end
+      body << statement()
+      if lbrace
+        until showNext.is_a? :rbrace
+          body << statement
+        end
+        expect :rbrace
+      end
       if showNext.is_a? :else
         else_=parse_else()
       end

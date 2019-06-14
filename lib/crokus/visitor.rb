@@ -279,6 +279,7 @@ module Crokus
       indent "Parenth"
       par.expr.accept(self)
       dedent
+      par
     end
 
     def visitArrow arrow,args=nil

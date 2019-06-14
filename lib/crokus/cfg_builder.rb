@@ -52,12 +52,12 @@ module Crokus
     end
 
     def visitSwitch switch,args=nil
-      finalBranch=BasicBlock.new
+      @cfg << finalBranch=BasicBlock.new
       @current_break_dest=finalBranch
       for cas in switch.cases
         cond=Binary.new(switch.expr,EQUAL,cas.expr)
-        trueBranch=BasicBlock.new
-        falseBranch=BasicBlock.new
+        @cfg << trueBranch=BasicBlock.new
+        @cfg << falseBranch=BasicBlock.new
 
         @current << ITE.new(cond,trueBranch,falseBranch)
         @current.to trueBranch
@@ -75,7 +75,7 @@ module Crokus
     def visitBreak brk,args=nil
       @current << brk
       @current.to @current_break_dest
-      unreachable = BasicBlock.new
+      @cfg << unreachable = BasicBlock.new
       @current = unreachable
     end
 
@@ -139,23 +139,25 @@ module Crokus
       @current=falseBranch
     end
 
+    def visitDoWhile dowhile,args=nil
+      @cfg << cond_bb     = BasicBlock.new
+      @cfg << trueBranch  = BasicBlock.new
+      @cfg << falseBranch = BasicBlock.new
 
-    #..........expresions..........
+      @current.to trueBranch
+      @current = trueBranch
+      dowhile.body.accept(self) # may modify @current
 
-    # def visitFunCall fcall,args=nil
-    #   @current << fcall
-    # end
-    #
-    # def visitParenth par,args=nil
-    #   par.expr.accept(self)
-    # end
-    #
-    # def visitBinary expr,args=nil
-    #   expr.lhs.accept(self)
-    #   expr.op.accept(self)
-    #   expr.rhs.accept(self)
-    #   expr
-    # end
+      @current.to cond_bb
+      @current = cond_bb
+      cond=dowhile.cond.accept(self)
+
+      cond_bb << ITE.new(cond,trueBranch,falseBranch)
+
+      cond_bb.to trueBranch
+      cond_bb.to falseBranch
+      @current = falseBranch
+    end
 
   end #class Visitor
 end #module
