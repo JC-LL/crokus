@@ -452,42 +452,31 @@ module Crokus
       end
     end
 
-    # apparently UNUSED.
-    # def func_call as_procedure=false
-    #   indent "func_call"
-    #   name=expect(:ident)
-    #   expect :lparen
-    #   args=[]
-    #   while !showNext.is_a? :rparen
-    #     args << expression()
-    #     if showNext.is_a? :comma
-    #       acceptIt
-    #     end
-    #   end
-    #   expect :rparen
-    #   dedent
-    #   FunCall.new(name,args,as_procedure)
-    # end
-
     def parse_type
       indent "parse_type"
-      qualifier=type_qualifier?()
+      ret=Type.new(nil)
+
+      ret.precisions << spec_qualifier?() # const, volatile
+      if showNext.is_a? [:signed,:unsigned]
+        ret.precisions << acceptIt
+      end
+
       case showNext.kind
-      when :signed,:unsigned
-        acceptIt
       when :ident,:char,:int,:short,:long,:float,:double,:void
-        tok=acceptIt
-        ret=Type.new(tok)
-        if qualifier
-          ret.specifiers||=[] << qualifier
+        ret.name=acceptIt
+        while showNext.is_a? [:char,:int,:short,:long,:float,:double,:void]
+          ret.precisions << ret.name
+          ret.name=acceptIt
         end
+        ret.precisions.flatten!
       when :struct
-        struct=parse_struct()
+        ret=parse_struct()
       when :typedef
-        typedef()
+        ret=typedef()
       else
         raise "Parsing ERROR in type declaration: '#{showNext}'"
       end
+
       while showNext.is_a? [:mul,:lparen]
         case showNext.kind
         when :mul
@@ -507,15 +496,17 @@ module Crokus
       return ret
     end
 
-    def type_qualifier?
+    def spec_qualifier?
+      list=[]
       while showNext.is_a? STARTERS_TYPE_QUALIFIER
         case showNext.kind
         when :volatile
-          acceptIt
+          list << acceptIt
         when :const
-          acceptIt
+          list << acceptIt
         end
       end
+      list
     end
 
     def parse_if
@@ -794,7 +785,7 @@ module Crokus
       case showNext.kind
       when :lparen # parenth expr OR casting !
         res=is_casting?
-        puts "casting? : #{res}" if @verbose
+        puts "casting? : #{res}" if $options[:verbose]
         if res
           e=casting
         else
@@ -820,12 +811,13 @@ module Crokus
     end
 
     def casting
-      indent "casting : #{showNext}"
+      puts "casting : #{showNext}" if $options[:verbose]
       expect :lparen
-      typename
+      #typename
+      t=parse_type
       expect :rparen
-      unary
-      dedent
+      u=unary
+      CastedExpr.new(t,u)
     end
 
     def parenthesized
@@ -839,34 +831,39 @@ module Crokus
 
     def typename
       indent "typename"
-      spec_qualifier_list
+      type=specifier_qualifier
       while showNext.is_a? STARTERS_ABSTRACT_DECLARATOR
-        abstract_decl
+        list << abstract_decl
       end
       dedent
+      list
     end
 
     def spec_qualifier_list
       indent "spec_qualifier_list #{showNext.inspect}"
       while showNext.is_a? STARTERS_TYPE_SPECIFIER+STARTERS_TYPE_QUALIFIER
         if showNext.is_a? STARTERS_TYPE_SPECIFIER
-          type_specifier
+          list << type_specifier
         else
-          type_qualifier
+          list << type_qualifier
         end
       end
       dedent
+      list
     end
 
     STARTERS_TYPE_SPECIFIER=[:void,:char,:short,:int,:long,:float,:signed,:unsigned,:struct,:union,:enum,:ident]
     def type_specifier
+      type=Type.new(nil,[])
       indent "type_specifier #{showNext}"
       if showNext.is_a? STARTERS_TYPE_SPECIFIER
-        acceptIt
+        ret=acceptIt
+        type.name=ret
       else
         raise "ERROR : type_specifier. Expecting one of '#{STARTERS_TYPE_SPECIFIER}' at #{showNext.pos}"
       end
       dedent
+      type
     end
 
   #   abstract_declarator
@@ -946,11 +943,14 @@ module Crokus
       case showNext.kind
       when :lparen
         acceptIt
-        typename
+        #e=typename
+        e=parse_type
         expect :rparen
       else
-        unary
+        #e=unary
+        e=expression
       end
+      Sizeof.new(e)
     end
 
     def postfix

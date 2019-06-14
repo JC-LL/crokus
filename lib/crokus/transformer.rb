@@ -29,7 +29,7 @@ module Crokus
 
     def visitDecl decl,args=nil
       type=decl.type.accept(self)
-      var=decl.var.accept(self)
+      var=decl.var.accept(self) if decl.var
       init=decl.init.accept(self) if decl.init
       Decl.new(type,var,init)
     end
@@ -53,9 +53,11 @@ module Crokus
     end
 
     def visitType type,args=nil
-      specifiers=type.specifiers.collect{|spec| spec.accept(self)}
+      precisions=type.precisions.collect{|prc| prc.accept(self)}
       name=type.name.accept(self)
-      Type.new(name,specifiers)
+      ret=Type.new(name)
+      ret.precisions=precisions
+      ret
     end
 
     def visitPointerTo pto,args=nil
@@ -70,7 +72,7 @@ module Crokus
     end
 
     def visitStruct struct,args=nil
-      name=struct.name.accept(self)
+      name=struct.name.accept(self) if struct.name
       decls=struct.decls.collect{|decl| decl.accept(self)}
       Struct.new(name,decls)
     end

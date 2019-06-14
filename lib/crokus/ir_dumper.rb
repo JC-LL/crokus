@@ -17,7 +17,9 @@ module Crokus
       @visited << bb
       @current=bb
       bb.stmts.each do |stmt|
-        puts "\t"+stmt.str.gsub(/;/,'')
+        unless stmt.is_a? Break or stmt.is_a? Continue
+          puts "\t"+stmt.str.gsub(/;/,'')
+        end
       end
       unless bb.stmts.last.is_a? Crokus::ITE
         if bb.succs.any?

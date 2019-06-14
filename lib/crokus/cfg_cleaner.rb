@@ -3,7 +3,7 @@ module Crokus
   class CFGCleaner
 
     def clean cfg
-      puts "\t|--> cleaning '#{cfg.name}'"
+      puts "\t|--> cleaning '#{cfg.name}'" unless $options[:mute]
       @cfg=cfg
       @visited=[]
       @new_succs={}

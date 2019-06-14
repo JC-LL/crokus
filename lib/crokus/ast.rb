@@ -53,11 +53,10 @@ module Crokus
   end
 
   #........ types ...........
-
   class Type < Ast
-    attr_accessor :name,:specifiers
-    def initialize name,specifiers=[]
-      @specifiers=specifiers
+    attr_accessor :name,:precisions
+    def initialize name
+      @precisions=[]
       @name=name
     end
   end

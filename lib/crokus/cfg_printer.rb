@@ -14,7 +14,7 @@ module Crokus
       @code << footer
       dot_name="cfg_#{cfg.name}.dot"
       @code.save_as dot_name
-      puts "\t|--> graphviz file saved as '#{dot_name}'"
+      puts "\t|--> graphviz file saved as '#{dot_name}'" unless $options[:mute]
     end
 
     def header

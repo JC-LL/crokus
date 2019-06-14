@@ -60,8 +60,9 @@ module Crokus
     end
 
     def visitITE ite,args=nil
-      ret=ITE.new(ite.cond,ite.trueBranch,ite.falseBranch)
-      if ite.cond.is_a? Binary
+      cond=ite.cond.accept(self)
+      ret=ITE.new(cond,ite.trueBranch,ite.falseBranch)
+      if ite.cond.is_a?(Binary)
         cond=ite.cond.accept(self)
         tmp=new_tmp()
         @new_stmts << Assign.new(tmp,OP_ASSIGN,cond)
@@ -90,7 +91,6 @@ module Crokus
     def visitIndexed idx,args=nil
       lhs=idx.lhs.accept(self)
       ret=Indexed.new(lhs,idx.rhs)
-      #if idx.rhs.is_a? Binary # WARNING : what about Indexed ? etc
       if idx.rhs.respond_to? :lhs # WARNING : Indexed! Pointed! etc
         lhs=idx.rhs.accept(self)
         tmp=new_tmp()

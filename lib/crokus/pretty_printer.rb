@@ -97,11 +97,11 @@ module Crokus
     end
 
     def visitType type,args=nil
-      specifiers=type.specifiers.collect{|spec| spec.accept(self)}
-      specifiers=specifiers.join
-      specifiers+=" " if specifiers.size>0
+      precisions=type.precisions.collect{|spec| spec.accept(self)}
+      precisions=precisions.join(" ")
+      precisions+=" " if precisions.size>0
       name=type.name.accept(self)
-      return "#{specifiers}#{name}"
+      return "#{precisions}#{name}"
     end
 
     def visitPointerTo pto,args=nil
@@ -198,14 +198,14 @@ module Crokus
     def visitPostFixAccu accu,args=nil
       lhs=accu.lhs.accept(self) if accu.lhs #++i
       op =accu.op.accept(self)
-      ret="#{lhs}#{op};"
+      ret="#{lhs}#{op}"
       ret
     end
 
     def visitPreFixAccu accu,args=nil
       lhs=accu.lhs.accept(self) if accu.lhs #++i
       op =accu.op.accept(self)
-      ret="#{lhs}#{op};"
+      ret="#{lhs}#{op}"
       ret
     end
 

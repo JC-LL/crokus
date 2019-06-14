@@ -16,7 +16,7 @@ module Crokus
       if filename=args[:cfile]
         compiler.compile filename
       else
-        puts "need a C file : crokus -c <file.c>"
+        puts "need a C file : crokus [options] <file.c>"
       end
     end
 
@@ -39,24 +39,32 @@ module Crokus
         exit(true)
       end
 
+      parser.on("-p", "--parse", "parse only") do
+        options[:parse_only]=true
+      end
+
       parser.on("--pp", "pretty print back source code ") do
         options[:pp] = true
       end
 
-      parser.on("--ast", "draw abstract syntax tree (AST)") do
-        options[:draw_ast] = true
+      parser.on("--ast", "abstract syntax tree (AST)") do
+        options[:ast] = true
       end
 
-      parser.on("--cfg", "draw control-flow graphs for each function") do
-        options[:draw_cfg] = true
+      parser.on("--cfg", "control-flow graphs for each function") do
+        options[:cfg] = true
       end
 
       parser.on("--tac", "draw three address code (TAC) CFG") do
-        options[:draw_cfg_tac] = true
+        options[:tac] = true
       end
 
       parser.on("--emit-ir", "dump textual IR from TAC CFG") do
         options[:emit_ir] = true
+      end
+
+      parser.on("--vv", "verbose") do
+        options[:verbose] = true
       end
 
       parser.on("-v", "--version", "Show version number") do
@@ -64,11 +72,9 @@ module Crokus
         exit(true)
       end
 
-      parser.on("-c FILE", "source file") do |file|
-        options[:cfile] = file
-      end
-
       parser.parse!(arguments)
+
+      options[:cfile]=arguments.shift #the remaining c file
 
       if no_arguments
         puts parser

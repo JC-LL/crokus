@@ -6,7 +6,7 @@ require_relative 'cleaner'
 
 module Crokus
 
-  class CFGBuilder < Visitor
+  class CFGBuilder < Transformer
 
     def initialize
       @ind=-2
@@ -18,7 +18,7 @@ module Crokus
     end
 
     def visitFunction func,args=nil
-      puts "   |--> visitFunction '#{func.name}'"
+      puts "   |--> visitFunction '#{func.name}'" unless $options[:mute]
       @cfg=CFG.new(func.name)
       @current=@cfg.starter
       func.body.accept(self)
@@ -26,7 +26,7 @@ module Crokus
       @cfg=CFGCleaner.new.clean(@cfg)
       @cfg.name=Ident.new(Token.create "#{@cfg.name}_clean")
       func.cfg=@cfg
-      puts "\t|--> cfg size for '#{func.name}' : #{@cfg.size}"
+      puts "\t|--> cfg size for '#{func.name}' : #{@cfg.size}" unless $options[:mute]
       @cfg.print
     end
 
@@ -47,12 +47,19 @@ module Crokus
       @current << assign
     end
 
-    def  visitPostFixAccu assign,args=nil
-      @current << assign
+    # a++, --i etc are replaced by their a+=1, i-=1 counterparts.
+    def visitPostFixAccu accu,args=nil
+      puts "WARNING : accumulator '#{accu.str}' expanded. May cause bugs." if $options[:verbose]
+      op=Token.create(accu.op.val[0..-2]+"=")
+      @current << assign=Assign.new(accu.lhs,op,ONE)
+      accu.lhs
     end
 
-    def  visitPreFixAccu assign,args=nil
-      @current << assign
+    def visitPreFixAccu accu,args=nil
+      puts "WARNING : accumulator '#{accu.str}' expanded. May cause bugs."if $options[:verbose]
+      op=Token.create(accu.op.val[0..-2]+"=")
+      @current << assign=Assign.new(accu.lhs,op,ONE)
+      accu.lhs
     end
 
     def visitReturn ret,args=nil
@@ -76,6 +83,7 @@ module Crokus
       end
       if switch.default
         switch.default.accept(self)
+        @current.to finalBranch
       end
       @current=finalBranch
     end
@@ -95,7 +103,7 @@ module Crokus
     end
 
     def visitIf if_,args=nil
-      cond=if_.cond.accept(self)
+      cond=if_.cond.accept(self,:as_expr)
       @cfg << trueBranch =BasicBlock.new
       @cfg << falseBranch=BasicBlock.new
       @cfg << mergeBranch=BasicBlock.new
@@ -119,7 +127,7 @@ module Crokus
     end
 
     def visitWhile while_,args=nil
-      cond=while_.cond.accept(self)
+      cond=while_.cond.accept(self,:as_expr)
       @cfg << cond_bb     = BasicBlock.new
       @current_cond = cond_bb # for continue stmt !
       @cfg << trueBranch  = BasicBlock.new
@@ -133,6 +141,8 @@ module Crokus
       @current.to cond_bb
       @current=falseBranch
     end
+
+
 
     def visitFor for_,args=nil
       for_.init.each{|stmt| stmt.accept(self)}
@@ -158,7 +168,7 @@ module Crokus
 
     def visitDoWhile dowhile,args=nil
       @cfg << cond_bb     = BasicBlock.new
-      @current_cond = cond_bb # for continue stmt !
+      @current_continue_dest = cond_bb # for continue stmt !
       @cfg << trueBranch  = BasicBlock.new
       @cfg << falseBranch = BasicBlock.new
 

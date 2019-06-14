@@ -28,7 +28,7 @@ module Crokus
     def visitDecl decl,args=nil
       indent "Decl"
       decl.type.accept(self)
-      decl.var.accept(self)
+      decl.var.accept(self) if decl.var #case of struct decl only.
       decl.init.accept(self) if decl.init
       dedent
       decl
@@ -54,7 +54,7 @@ module Crokus
       typdef.type.accept(self)
       typdef.name.accept(self)
       dedent
-      typedef
+      typdef
     end
 
     def visitType type,args=nil
@@ -145,13 +145,13 @@ module Crokus
     end
 
     def visitPostFixAccu accu,args=nil
-      lhs=accu.lhs.accept(self) if accu.lhs #++i
+      lhs=accu.lhs.accept(self,args) if accu.lhs #++i
       op =accu.op.accept(self)
       accu
     end
 
     def visitPreFixAccu accu,args=nil
-      lhs=accu.lhs.accept(self) if accu.lhs #++i
+      lhs=accu.lhs.accept(self,args) if accu.lhs #++i
       op =accu.op.accept(self)
       accu
     end
@@ -268,9 +268,9 @@ module Crokus
 
     def visitBinary expr,args=nil
       indent "Binary"
-      expr.lhs.accept(self)
+      expr.lhs.accept(self,args)
       expr.op.accept(self)
-      expr.rhs.accept(self)
+      expr.rhs.accept(self,args)
       dedent
       expr
     end
@@ -324,6 +324,7 @@ module Crokus
       indent "Sizeof"
       sizeof.type.accept(self)
       dedent
+      sizeof
     end
 
     def visitDeref deref,args=nil

@@ -20,6 +20,7 @@ module Crokus
 
     def initialize
       @options={}
+      $options=@options
       @parser=Parser.new
     end
 
@@ -29,20 +30,35 @@ module Crokus
 
     def compile filename
       header
+
       parse(filename)
-      draw_ast     if options[:draw_ast]
-      pretty_print if options[:pp]
+      if options[:parse_only]
+        return true
+      end
+
       build_cfg
+      if options[:cfg]
+        return true
+      end
+
       build_tac
-      emit_ir      if options[:emit_ir]
+      if options[:tac]
+        return true
+      end
+
+      emit_ir
       return true
     end
+
+
 
     def parse filename
       @base_name=File.basename(filename, ".c")
       code=IO.read(filename)
       puts "=> parsing #{filename}" unless options[:mute]
       @ast=Parser.new.parse(code)
+      draw_ast     if options[:draw_ast]
+      pretty_print if options[:pp]
     end
 
     # def parse filename
@@ -60,7 +76,7 @@ module Crokus
     end
 
     def transform
-      puts "=> dummy transform"
+      puts "=> dummy transform" unless options[:mute]
       ast_t= Transformer.new.transform(ast)
       dotname="#{base_name}_trans.dot"
       draw_ast ast_t,dotname
