@@ -25,7 +25,6 @@ module Crokus
     end
 
     def visit_rec bb
-      #puts "- visiting #{bb.label}"
       @visited << bb
       @current=bb
       @new_stmts=[]

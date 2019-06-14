@@ -284,6 +284,8 @@ module Crokus
       when :semicolon
         acceptIt
         #ret=expression_statement
+      when :inc_op,:dec_op
+        ret=expression_statement
       else
         show_line(showNext.pos)
         raise "unknown statement start at #{showNext.pos} .Got #{showNext.kind} #{showNext.val}"
@@ -567,8 +569,9 @@ module Crokus
       forloop=For.new
       expect :for
       expect :lparen
-      forloop.init << expression_statement()
-      forloop.cond = expression_statement()
+      forloop.init << expression_statement
+      forloop.cond = expression()
+      expect :semicolon
       forloop.increment=expression()
       expect :rparen
       forloop.body=statement()
@@ -924,11 +927,11 @@ module Crokus
         when :inc_op
           op=acceptIt
           u=unary
-          u=Unary.new(op,u)
+          u=PreFixAccu.new(op,u)
         when :dec_op
-          acceptIt
-          unary
-          raise "NIY"
+          op=acceptIt
+          u=unary
+          u=PreFixAccu.new(op,u)
         when :sizeof
           u=sizeof()
         else

@@ -150,6 +150,12 @@ module Crokus
       accu
     end
 
+    def visitPreFixAccu accu,args=nil
+      lhs=accu.lhs.accept(self) if accu.lhs #++i
+      op =accu.op.accept(self)
+      accu
+    end
+
     def visitFunCall fcall,args=nil
       indent "FunCall"
       fcall.name.accept(self)

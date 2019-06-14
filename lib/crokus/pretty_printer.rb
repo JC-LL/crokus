@@ -202,6 +202,13 @@ module Crokus
       ret
     end
 
+    def visitPreFixAccu accu,args=nil
+      lhs=accu.lhs.accept(self) if accu.lhs #++i
+      op =accu.op.accept(self)
+      ret="#{lhs}#{op};"
+      ret
+    end
+
     def visitFunCall fcall,as_procedure=nil
       fname=fcall.name.accept(self)
       argus=fcall.args.collect{|argu| argu.accept(self)}
@@ -313,6 +320,10 @@ module Crokus
 
     def visitBreak brk,args=nil
       return "break;"
+    end
+
+    def visitContinue cont,args=nil
+      return "continue;"
     end
 
     def visitLabelledStmt label,args=nil

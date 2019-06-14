@@ -33,7 +33,7 @@ module Crokus
     def visitBody body,args=nil
       body.each do |stmt|
         case stmt
-        when Assign,CtrlStmt
+        when CtrlStmt,Assign,PostFixAccu
           stmt.accept(self)
         when Decl
         else
@@ -44,6 +44,14 @@ module Crokus
 
     #...........stmts...............
     def  visitAssign assign,args=nil
+      @current << assign
+    end
+
+    def  visitPostFixAccu assign,args=nil
+      @current << assign
+    end
+
+    def  visitPreFixAccu assign,args=nil
       @current << assign
     end
 
@@ -80,7 +88,10 @@ module Crokus
     end
 
     def visitContinue cont,args=nil
-      raise " NIY : continue"
+      @current << cont
+      @current.to @current_continue_dest
+      @cfg << unreachable = BasicBlock.new
+      @current = unreachable
     end
 
     def visitIf if_,args=nil
@@ -89,6 +100,7 @@ module Crokus
       @cfg << falseBranch=BasicBlock.new
       @cfg << mergeBranch=BasicBlock.new
       @current << ITE.new(cond,trueBranch,falseBranch)
+
       @current.to trueBranch
       @current.to falseBranch
       #-----------
@@ -109,6 +121,7 @@ module Crokus
     def visitWhile while_,args=nil
       cond=while_.cond.accept(self)
       @cfg << cond_bb     = BasicBlock.new
+      @current_cond = cond_bb # for continue stmt !
       @cfg << trueBranch  = BasicBlock.new
       @cfg << falseBranch = BasicBlock.new
       @current.to cond_bb
@@ -127,13 +140,17 @@ module Crokus
       @cfg << cond_bb     = BasicBlock.new
       @cfg << trueBranch  = BasicBlock.new
       @cfg << falseBranch = BasicBlock.new
-      @current_break_dest=falseBranch
+      @cfg << postBranch  = BasicBlock.new
+      @current_continue_dest = postBranch
+      @current_break_dest    = falseBranch
       @current.to cond_bb
       cond_bb << ITE.new(cond,trueBranch,falseBranch)
       cond_bb.to trueBranch
       cond_bb.to falseBranch
       @current= trueBranch
       for_.body.accept(self) #may modify @current identity
+      @current.to postBranch
+      @current=postBranch
       for_.increment.accept(self)
       @current.to cond_bb
       @current=falseBranch
@@ -141,6 +158,7 @@ module Crokus
 
     def visitDoWhile dowhile,args=nil
       @cfg << cond_bb     = BasicBlock.new
+      @current_cond = cond_bb # for continue stmt !
       @cfg << trueBranch  = BasicBlock.new
       @cfg << falseBranch = BasicBlock.new
 

@@ -288,6 +288,12 @@ module Crokus
     end
   end
 
+  class PreFixAccu < Assign
+    def initialize tok,lhs
+      super(lhs,tok,nil)
+    end
+  end
+
   class Return < CtrlStmt
     attr_accessor :expr
     def initialize e
