@@ -148,11 +148,9 @@ module Crokus
       args=func.args.collect{|arg| arg.accept(self)}
       args=args.join(",")
       code << "\n#{tname} #{fname}(#{args})"
-      code << "{" #GNU style
       code.indent=2
-      func.body.stmts.each{|stmt| code << stmt.accept(self)}
+      code << func.body.accept(self)
       code.indent=0
-      code << "}"
       return code
     end
 
@@ -263,15 +261,31 @@ module Crokus
       e=sw_.expr.accept(self)
       sw_.cases.each{|case_| case_.accept(self)}
       code=Code.new
-      code << "switch(#{e})"
+      code << "switch(#{e}){"
+      code.indent=2
+      sw_.cases.each{|case_|
+        code << case_.accept(self)
+      }
+      code.indent=0
+      if sw_.default
+        code.indent=2
+        code << "default:"
+        code.indent=4
+        code << sw_.default.accept(self)
+        code.indent=0
+      end
+
+      code << "}"
       return code
     end
 
     def visitCase case_,args=nil
-      case_.expr.accept(self)
-      case_.body.each{|stmt| stmt.accept(self)}
+      e=case_.expr.accept(self)
       code=Code.new
-      code << "case..."
+      code << "case #{e}:"
+      code.indent=2
+      code << case_.body.accept(self)
+      code.indent=0
       return code
     end
 
@@ -298,7 +312,7 @@ module Crokus
     end
 
     def visitBreak brk,args=nil
-      return "break"
+      return "break;"
     end
 
     def visitLabelledStmt label,args=nil

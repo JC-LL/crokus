@@ -1,5 +1,3 @@
-
-require_relative 'code'
 require_relative 'cfg'
 require_relative 'cfg_cleaner'
 
@@ -10,9 +8,6 @@ module Crokus
 
   class CFGBuilder < Visitor
 
-    include Indent
-    attr_accessor :code
-
     def initialize
       @ind=-2
       @verbose=false
@@ -20,12 +15,6 @@ module Crokus
 
     def build ast
       ast.accept(self)
-    end
-
-    def visitDesignUnit du,args=nil
-      indent "DesignUnit"
-      du.list.each{|e| e.accept(self,:body)}
-      dedent
     end
 
     def visitFunction func,args=nil
@@ -41,42 +30,57 @@ module Crokus
       @cfg.print
     end
 
+    def visitBody body,args=nil
+      body.each do |stmt|
+        case stmt
+        when Assign,CtrlStmt
+          stmt.accept(self)
+        when Decl
+        else
+          @current << stmt
+        end
+      end
+    end
+
     #...........stmts...............
-    def visitCommaStmt stmt,args=nil
-    end
-
-    def visitDecl decl,args=nil
-    end
-
-    def visitAssign assign,args=nil
-      lhs=assign.lhs.accept(self)
-      op =assign.op.accept(self)
-      rhs=assign.rhs.accept(self)
+    def  visitAssign assign,args=nil
       @current << assign
     end
 
-    def visitAccu accu,args=nil
-      lhs=accu.lhs.accept(self) if accu.lhs #++i
-      op =accu.op.accept(self)
-      rhs=accu.rhs.accept(self) if accu.rhs # i++
-      @current << ret
-    end
-
-    def visitPostFixAccu accu,args=nil
-      lhs=accu.lhs.accept(self) if accu.lhs #++i
-      op =accu.op.accept(self)
-      @current << accu
-    end
-
-    def visitFunCall fcall,args=nil
-      fname=fcall.name.accept(self)
-      argus=fcall.args.collect{|argu| argu.accept(self)}
-      argus=argus.join(',')
-      @current << fcall
-    end
-
     def visitReturn ret,args=nil
-      ret
+       @current << ret
+    end
+
+    def visitSwitch switch,args=nil
+      finalBranch=BasicBlock.new
+      @current_break_dest=finalBranch
+      for cas in switch.cases
+        cond=Binary.new(switch.expr,EQUAL,cas.expr)
+        trueBranch=BasicBlock.new
+        falseBranch=BasicBlock.new
+
+        @current << ITE.new(cond,trueBranch,falseBranch)
+        @current.to trueBranch
+        @current.to falseBranch
+        @current = trueBranch
+        cas.body.accept(self)
+        @current = falseBranch
+      end
+      if switch.default
+        switch.default.accept(self)
+      end
+      @current=finalBranch
+    end
+
+    def visitBreak brk,args=nil
+      @current << brk
+      @current.to @current_break_dest
+      unreachable = BasicBlock.new
+      @current = unreachable
+    end
+
+    def visitContinue cont,args=nil
+      raise " NIY : continue"
     end
 
     def visitIf if_,args=nil
@@ -123,6 +127,7 @@ module Crokus
       @cfg << cond_bb     = BasicBlock.new
       @cfg << trueBranch  = BasicBlock.new
       @cfg << falseBranch = BasicBlock.new
+      @current_break_dest=falseBranch
       @current.to cond_bb
       cond_bb << ITE.new(cond,trueBranch,falseBranch)
       cond_bb.to trueBranch
@@ -134,25 +139,23 @@ module Crokus
       @current=falseBranch
     end
 
-    def visitBody body,args=nil
-      body.each{|stmt| stmt.accept(self)}
-    end
+
     #..........expresions..........
 
-    def visitFunCall fcall,args=nil
-      @current << fcall
-    end
-
-    def visitParenth par,args=nil
-      par.expr.accept(self)
-    end
-
-    def visitBinary expr,args=nil
-      expr.lhs.accept(self)
-      expr.op.accept(self)
-      expr.rhs.accept(self)
-      expr
-    end
+    # def visitFunCall fcall,args=nil
+    #   @current << fcall
+    # end
+    #
+    # def visitParenth par,args=nil
+    #   par.expr.accept(self)
+    # end
+    #
+    # def visitBinary expr,args=nil
+    #   expr.lhs.accept(self)
+    #   expr.op.accept(self)
+    #   expr.rhs.accept(self)
+    #   expr
+    # end
 
   end #class Visitor
 end #module

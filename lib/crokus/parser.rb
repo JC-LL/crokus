@@ -261,6 +261,9 @@ module Crokus
       when :break
         acceptIt
         ret=Break.new
+      when :continue
+        acceptIt
+        ret=Continue.new
       when :do
         ret=do_while()
       when :goto
@@ -285,6 +288,7 @@ module Crokus
         show_line(showNext.pos)
         raise "unknown statement start at #{showNext.pos} .Got #{showNext.kind} #{showNext.val}"
       end
+      maybe :semicolon
       dedent
       return ret
     end
@@ -317,7 +321,7 @@ module Crokus
       expect :switch
       expect :lparen
       e=expression
-      ret=Switch.new(e,cases=[])
+      ret=Switch.new(e,cases=[],default=nil)
       expect :rparen
       expect :lbrace
       while showNext.is_a? :case
@@ -333,9 +337,11 @@ module Crokus
       if showNext.is_a? :default
         acceptIt
         expect :colon
+        default_body=Body.new
         while showNext.kind!=:rbrace
-          statement()
+          default_body << statement()
         end
+        ret.default=default_body
       end
       expect :rbrace
       dedent
@@ -345,8 +351,7 @@ module Crokus
     def parse_return
       indent "parse_return"
       expect :return
-      if showNext.is_a? :semicolon
-      else
+      unless showNext.is_a? :semicolon
         e=expression
       end
       dedent
@@ -952,6 +957,7 @@ module Crokus
             args=argument_expr_list
           end
           expect :rparen
+          args=linearize_comma_stmt(args)
           e1=FunCall.new(e1,args)
         when :dot
           acceptIt
@@ -967,6 +973,17 @@ module Crokus
       end
       dedent
       e1
+    end
+
+    def linearize_comma_stmt ary
+      ary.collect do |stmt|
+        case stmt
+        when CommaStmt
+          stmt.to_list
+        else
+          stmt
+        end
+      end.flatten
     end
 
     def primary

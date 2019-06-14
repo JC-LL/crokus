@@ -1,12 +1,8 @@
-
-require_relative 'code'
-
 module Crokus
 
   class Visitor
 
     include Indent
-    attr_accessor :code
 
     def initialize
       @ind=-2
@@ -147,7 +143,7 @@ module Crokus
       assign.rhs.accept(self)
       assign
     end
-    
+
     def visitPostFixAccu accu,args=nil
       lhs=accu.lhs.accept(self) if accu.lhs #++i
       op =accu.op.accept(self)
@@ -225,12 +221,17 @@ module Crokus
       brk
     end
 
+    def visitContinue brk,args=nil
+      indent "Continue"
+      dedent
+      brk
+    end
+
     def visitLabelledStmt label,args=nil
       indent "LabelledStmt"
       dedent
       label
     end
-
 
     def visitGoto goto,args=nil
       indent "Goto"
@@ -252,6 +253,10 @@ module Crokus
     end
 
     def visitCharLit lit,args=nil
+      lit
+    end
+
+    def visitFloatLit lit,args=nil
       lit
     end
 

@@ -203,6 +203,23 @@ module Crokus
     def initialize lhs,rhs
       @lhs,@rhs=lhs,rhs
     end
+
+    def to_list
+      list=[]
+      list << to_list_rec(@lhs)
+      list << to_list_rec(@rhs)
+      list.flatten
+    end
+
+    def to_list_rec e
+      ret=[]
+      if e.is_a? CommaStmt
+        ret << e.to_list
+      else
+        ret << e
+      end
+      ret
+    end
   end
 
   class Assign < Stmt
@@ -212,49 +229,53 @@ module Crokus
     end
   end
 
-  class For < Stmt
+  class CtrlStmt < Stmt
+  end
+
+  class For < CtrlStmt
     attr_accessor :init,:cond,:increment,:body
     def initialize init=[],cond=nil,increment=nil,body=nil
       @init,@cond,@increment,@body=init,cond,increment,body
     end
   end
 
-  class While < Stmt
+  class While < CtrlStmt
     attr_accessor :cond,:body
     def initialize cond,body
       @cond,@body=cond,body
     end
   end
 
-  class DoWhile < Stmt
+  class DoWhile < CtrlStmt
     attr_accessor :cond,:body
     def initialize cond,body=nil
       @cond,@body=cond,body
     end
   end
 
-  class If < Stmt
+  class If < CtrlStmt
     attr_accessor :cond,:body,:else
     def initialize cond,body,else_=nil
       @cond,@body,@else=cond,body,else_
     end
   end
 
-  class Else < Stmt
+  class Else < CtrlStmt
     attr_accessor :body
     def initialize body=[]
       @body=body
     end
   end
 
-  class Switch < Stmt
-    attr_accessor :expr,:cases
-    def initialize expr,cases=[]
+  class Switch < CtrlStmt
+    attr_accessor :expr,:cases,:default
+    def initialize expr,cases=[],default=nil
       @expr,@cases=expr,cases
+      @default=nil
     end
   end
 
-  class Case < Stmt
+  class Case < CtrlStmt
     attr_accessor :expr,:body
     def initialize e,body
       @expr,@body=e,body
@@ -267,24 +288,24 @@ module Crokus
     end
   end
 
-  class Return < Stmt
+  class Return < CtrlStmt
     attr_accessor :expr
     def initialize e
       @expr=e
     end
   end
 
-  class Break < Stmt
+  class Break < CtrlStmt
   end
 
-  class Goto < Stmt
+  class Continue < CtrlStmt
+  end
+
+  class Goto < CtrlStmt
     attr_accessor :label
     def initialize label
       @label=label
     end
-  end
-
-  class Switch < Stmt
   end
 
   class LabelledStmt < Stmt
