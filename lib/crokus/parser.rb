@@ -55,7 +55,7 @@ module Crokus
     end
     #--------------------------------------------------
     def dbg_print_next n
-      p tokens[0..n-1].collect{|tok| tok.inspect}
+      pp tokens[0..n-1].collect{|tok| tok.inspect}
     end
 
     def dbg_print node
@@ -806,6 +806,7 @@ module Crokus
         i+=1
       end
       tok=@tokens[i]
+      return false if tok.is_a? [:mul,:add,:sub]
       return true if tok.is_a? STARTERS_UNARY-STARTERS_ARRAY_OR_STRUCT_INIT
       return false
     end

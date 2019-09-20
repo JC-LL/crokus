@@ -228,6 +228,26 @@ module Crokus
     end
   end
 
+  class PostFixAccu < Assign
+    def initialize lhs,tok
+      super(lhs,tok,nil)
+    end
+
+    def unfix
+      lhs
+    end
+  end
+
+  class PreFixAccu < Assign
+    def initialize tok,lhs
+      super(lhs,tok,nil)
+    end
+
+    def unfix
+      lhs
+    end
+  end
+
   class CtrlStmt < Stmt
   end
 
@@ -281,17 +301,6 @@ module Crokus
     end
   end
 
-  class PostFixAccu < Assign
-    def initialize lhs,tok
-      super(lhs,tok,nil)
-    end
-  end
-
-  class PreFixAccu < Assign
-    def initialize tok,lhs
-      super(lhs,tok,nil)
-    end
-  end
 
   class Return < CtrlStmt
     attr_accessor :expr

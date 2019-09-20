@@ -31,39 +31,19 @@ module Crokus
     end
 
     def visitBody body,args=nil
-      body.each do |stmt|
-        case stmt
-        when CtrlStmt,Assign,PostFixAccu
-          stmt.accept(self)
-        when Decl
-        else
-          @current << stmt
-        end
-      end
+      body.each{|stmt| stmt.accept(self,args)}
     end
-
     #...........stmts...............
-    def  visitAssign assign,args=nil
+    def visitAssign assign,args=nil
       @current << assign
     end
 
-    # a++, --i etc are replaced by their a+=1, i-=1 counterparts.
-    def visitPostFixAccu accu,args=nil
-      puts "WARNING : accumulator '#{accu.str}' expanded. May cause bugs." if $options[:verbose]
-      op=Token.create(accu.op.val[0..-2]+"=")
-      @current << assign=Assign.new(accu.lhs,op,ONE)
-      accu.lhs
-    end
-
     def visitPreFixAccu accu,args=nil
-      puts "WARNING : accumulator '#{accu.str}' expanded. May cause bugs."if $options[:verbose]
-      op=Token.create(accu.op.val[0..-2]+"=")
-      @current << assign=Assign.new(accu.lhs,op,ONE)
-      accu.lhs
+      @current << accu
     end
 
-    def visitReturn ret,args=nil
-       @current << ret
+    def visitPostFixAccu accu,args=nil
+      @current << accu
     end
 
     def visitSwitch switch,args=nil
@@ -141,8 +121,6 @@ module Crokus
       @current.to cond_bb
       @current=falseBranch
     end
-
-
 
     def visitFor for_,args=nil
       for_.init.each{|stmt| stmt.accept(self)}

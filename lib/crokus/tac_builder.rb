@@ -28,10 +28,13 @@ module Crokus
       @visited << bb
       @current=bb
       @new_stmts=[]
+      @post_stmts=[]
       bb.stmts.each do |stmt|
         @new_stmts << stmt.accept(self)
       end
       bb.stmts=@new_stmts
+      bb.stmts << @post_stmts
+      bb.stmts.flatten!
       bb.succs.each do |bb|
         unless @visited.include? bb
           visit_rec(bb)
@@ -60,8 +63,7 @@ module Crokus
     end
 
     def visitITE ite,args=nil
-      cond=ite.cond.accept(self)
-      ret=ITE.new(cond,ite.trueBranch,ite.falseBranch)
+      ret=ITE.new(ite.cond,ite.trueBranch,ite.falseBranch)
       if ite.cond.is_a?(Binary)
         cond=ite.cond.accept(self)
         tmp=new_tmp()
@@ -73,14 +75,16 @@ module Crokus
 
     def visitBinary bin,args=nil
       ret=Binary.new(bin.lhs,bin.op,bin.rhs)
+      ret.lhs=bin.lhs.accept(self)
       if bin.lhs.respond_to? :lhs #Binary,Indexed,etc
-        lhs=bin.lhs.accept(self)
+        #lhs=bin.lhs.accept(self)
         tmp=new_tmp()
         @new_stmts << Assign.new(tmp,OP_ASSIGN,lhs)
         ret.lhs=tmp
       end
+      ret.rhs=bin.rhs.accept(self)
       if bin.rhs.respond_to? :lhs #Binary,Indexed,etc
-        rhs=bin.rhs.accept(self)
+        # rhs=bin.rhs.accept()
         tmp=new_tmp()
         @new_stmts << Assign.new(tmp,OP_ASSIGN,rhs)
         ret.rhs=tmp
@@ -99,6 +103,7 @@ module Crokus
       end
       return ret
     end
+
 
   end
 end

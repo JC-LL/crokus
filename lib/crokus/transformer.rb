@@ -231,6 +231,11 @@ module Crokus
       CharLit.new(tok)
     end
 
+    def visitFloatLit lit,args=nil
+      tok=lit.tok.accept(self)
+      FloatLit.new(tok)
+    end
+
     def visitBinary expr,args=nil
       lhs=expr.lhs.accept(self)
       op=expr.op.accept(self)
@@ -271,10 +276,10 @@ module Crokus
       AddressOf.new(e)
     end
 
-    def visitPointed pointed,args=nil
-      lhs=pointed.lhs.accept(self)
-      rhs=pointed.rhs.accept(self)
-      Pointed.new(lhs,rhs)
+    def visitDotted dotted,args=nil
+      lhs=dotted.lhs.accept(self)
+      rhs=dotted.rhs.accept(self)
+      Dotted.new(lhs,rhs)
     end
 
     def visitSizeof sizeof,args=nil

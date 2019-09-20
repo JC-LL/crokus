@@ -326,7 +326,7 @@ module Crokus
       return "continue;"
     end
 
-    def visitLabelledStmt label,args=nil
+    def visitLabeledStmt label,args=nil
       stmt=label.stmt.accept(self)
       code=Code.new
       code << stmt
@@ -404,9 +404,9 @@ module Crokus
       return " &#{e} "
     end
 
-    def visitPointed pointed,args=nil
-      lhs=pointed.lhs.accept(self)
-      rhs=pointed.rhs.accept(self)
+    def visitDotted dotted,args=nil
+      lhs=dotted.lhs.accept(self)
+      rhs=dotted.rhs.accept(self)
       return "#{lhs}.#{rhs}"
     end
 
