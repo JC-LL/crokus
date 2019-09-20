@@ -15,3 +15,13 @@ Then, its Control-Flow Graph.
 ![AST](/doc/cfg_convolve_clean.png)
 
 If you want to implement a transformation, have a look at the Visitor class, for instance used in the PrettyPrinter class.
+
+
+How to install :
+- rely on RubyGems (worldwide repository of Ruby libraries) : "gem install crokus"
+
+How to use :
+- on the command line, type "crokus -h". A simple help is provided. Not many options !
+- crokus --ast test.c will generate the complete AST for this C file.
+- crokus --cfg test.c will generate a CFG for each function enclosed in the C file.
+- more to come ! Stay tuned ! 
