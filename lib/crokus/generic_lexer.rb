@@ -54,9 +54,6 @@ class GenericLexer
     open(code)
     tokens=[]
     tokens << next_token() while not @ssc.eos?
-    # while not @ssc.eos?
-    #   tokens << (p next_token)
-    # end
     tokens
   end
 end

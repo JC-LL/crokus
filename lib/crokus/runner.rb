@@ -15,6 +15,8 @@ module Crokus
       compiler.options = args = parse_options(arguments)
       if filename=args[:cfile]
         compiler.compile filename
+      elsif script=args[:random]
+        compiler.execute script
       else
         puts "need a C file : crokus [options] <file.c>"
       end
@@ -61,6 +63,10 @@ module Crokus
 
       parser.on("--emit-ir", "dump textual IR from TAC CFG") do
         options[:emit_ir] = true
+      end
+
+      parser.on('--random PARAMS', "generates random c files, using parameters", String) do |params_filename|
+        options[:random] = params_filename
       end
 
       parser.on("--vv", "verbose") do

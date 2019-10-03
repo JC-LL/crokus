@@ -1,13 +1,15 @@
 require_relative 'ast'
 require_relative 'ast_printer'
 require_relative 'parser'
-#require_relative 'parser_only'
 require_relative 'visitor'
 require_relative 'transformer'
 require_relative 'pretty_printer'
 require_relative 'cfg_builder'
 require_relative 'tac_builder'
 require_relative 'ir_dumper'
+
+# random C generation
+require_relative 'cfg_random_gen'
 
 module Crokus
 
@@ -110,6 +112,10 @@ module Crokus
     def emit_ir
       puts "=> emit textual IR " unless options[:mute]
       IRDumper.new.visit(@ast)
+    end
+
+    def execute params
+      RandomGen.new.run(params)
     end
 
   end

@@ -37,7 +37,9 @@ class Token
   alias :str :val
 end
 
-ONE  = Token.new [:int_lit,'1',['na','na']]
-ZERO = Token.new [:int_lit,'0',['na','na']]
-DUMMY= Token.new [:id     ,'' ,['na','na']]
-EQUAL= Token.new [:eq   ,'==' ,['na','na']]
+ONE  = Token.new  [:int_lit,'1'  ,['na','na']]
+ZERO = Token.new  [:int_lit,'0'  ,['na','na']]
+DUMMY= Token.new  [:id     ,''   ,['na','na']]
+EQUAL= Token.new  [:eq     ,'==' ,['na','na']]
+ASSIGN= Token.new [:assign ,'='  ,['na','na']]
+MOD   = Token.new [:mod ,'%'  ,['na','na']]

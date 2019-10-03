@@ -15,10 +15,16 @@ module Crokus
 
   class CFG
     attr_accessor :name,:bbs,:starter
+    attr_accessor :infos
     def initialize name
       @name=name
       @bbs=[]
+      @infos={}
       @bbs << @starter=BasicBlock.new
+    end
+
+    def each &block
+      @bbs.each &block
     end
 
     def size
@@ -29,22 +35,24 @@ module Crokus
       @bbs << bb
     end
 
-    def print
-      CFGPrinter.new.print(self)
+    def print verbose
+      CFGPrinter.new.print(self,verbose)
     end
+
   end
 
   class BasicBlock
     @@id=-1
     attr_accessor :id,:stmts,:succs
-
+    attr_accessor :infos
     alias :label :id
 
-    def initialize
+    def initialize infos={}
       @@id+=1
       @id="L"+@@id.to_s
       @stmts=[]
       @succs=[]
+      @infos=infos
     end
 
     def <<(e)
@@ -72,6 +80,10 @@ module Crokus
     def code4dot
       @ppr||=PrettyPrinter.new
       @stmts.compact.collect{|stmt| stmt.accept(@ppr)}.join("\n")
+    end
+
+    def nextBranch
+      @succs.first
     end
 
     def size

@@ -6,7 +6,7 @@ module Crokus
 
     attr_accessor :code
 
-    def print cfg
+    def print cfg,verbose=$options[:mute]!=true
       @code=Code.new
       @code << header
       @visited=[]
@@ -14,7 +14,7 @@ module Crokus
       @code << footer
       dot_name="cfg_#{cfg.name}.dot"
       @code.save_as dot_name
-      puts "\t|--> graphviz file saved as '#{dot_name}'" unless $options[:mute]
+      puts "\t|--> graphviz file saved as '#{dot_name}'" if verbose
     end
 
     def header
