@@ -16,12 +16,12 @@ Then, its Control-Flow Graph.
 
 If you want to implement a transformation, have a look at the Visitor class, for instance used in the PrettyPrinter class.
 
-# generating random c
+## generating random c
 Crokus allows to generate random c functions, for experimental purposes. To run, type :
 ```bash
 crokus --random params.yaml
 ```
-The yaml files (one is given in tests directory) provides a set of parameters for the random generation, like this (without the '-' in the yaml file ): 
+The yaml files (one is given in tests directory) provides a set of parameters for the random generation, like this (without the '-' in the yaml file ):
 - name : "test1"
 - nb_inputs: 2
 - nb_outputs: 2
