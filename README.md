@@ -16,6 +16,23 @@ Then, its Control-Flow Graph.
 
 If you want to implement a transformation, have a look at the Visitor class, for instance used in the PrettyPrinter class.
 
+# generating random c
+Crokus allows to generate random c functions, for experimental purposes. To run, type :
+```bash
+crokus --random params.yaml
+```
+The yaml files (one is given in tests directory) provides a set of parameters for the random generation, like this (without the '-' in the yaml file ): 
+- name : "test1"
+- nb_inputs: 2
+- nb_outputs: 2
+- nb_basic_blocks: 10
+- nb_int_vars: 4
+- nb_int_arrays: 4
+- avg_size_int_arrays: 10
+- avg_assigns_per_bbs: 2
+- avg_assigns_expression_depth: 2
+- avg_forloop_iterations: 10
+- accept_while_loops: false
 
 ## How to install :
 - rely on RubyGems (worldwide repository of Ruby libraries) : "gem install crokus"
@@ -25,7 +42,7 @@ If you want to implement a transformation, have a look at the Visitor class, for
 - [x] crokus --ast test.c will generate the complete AST for this C file.
 - [x] crokus --cfg test.c will generate a CFG for each function enclosed in the C file.
 - [ ] crokus test.c will generate try to generate a three-address code (TAC) textual representation (work in progress !)
-- more to come ! Stay tuned !
+More to come ! Stay tuned !
 
 ## How to help :
 - report bugs by email or using github. I will try to do my best to fix them.

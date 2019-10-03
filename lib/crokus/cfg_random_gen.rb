@@ -33,6 +33,7 @@ module Crokus
       #print_infos
     end
 
+
     def print_infos
       puts " |-->[+] infos about CFG :"
       puts "      |-->[+] #basic blocks : #{@cfg.size}"
@@ -43,7 +44,7 @@ module Crokus
     end
 
     def init_cfg
-      @cfg=CFG.new("test")
+      @cfg=CFG.new(@params["name"])
       @current=@cfg.starter
     end
 
@@ -197,8 +198,7 @@ module Crokus
     end
 
     def create_assign
-      lhs=@vars.first
-
+      lhs=create_assignee
       rhs=create_expression()
       Assign.new(lhs,ASSIGN,rhs)
     end
@@ -206,9 +206,10 @@ module Crokus
     def create_assignee
       if @params["nb_int_arrays"]>0
         case r=rand(0..10)
-        when r<=3
+        when 0..3
           name,size=@cfg.infos["internal_arrays"].sample.first
           var=@readables.sample
+          @readables.rotate!
           return Indexed.new(name,Binary.new(var,MOD,size))
         end
       end

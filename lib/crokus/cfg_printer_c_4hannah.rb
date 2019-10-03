@@ -18,66 +18,14 @@ module Crokus
       code << "// date : #{Time.now.strftime("%a %d,%B %Y - %H:%M:%S")}"
       code << "//"+"-"*60
       code.newline
-      io=[decl_inputs,decl_outputs].join(',')
-      code << "int #{cfg.name}(#{io}){"
+      code << "int #{cfg.name}(#{}){"
       code.indent=2
-      code << decl_vars()
-      code << decl_arrays()
       code << visit_rec(cfg.starter)
-      code << output_assigns()
       code << "return 0;"
       code.indent=0
       code << "}"
       puts code.finalize
       code.save_as "#{cfg.name}.c"
-    end
-
-    def decl_inputs
-      if h=cfg.infos["inputs"]
-        return h.map{|ident| "int #{ident}"}
-      end
-    end
-
-    def decl_outputs
-      if h=cfg.infos["outputs"]
-        return h.map{|ident| "int *#{ident}"}
-      end
-    end
-
-    def decl_vars
-      code=Code.new
-      if h=cfg.infos["int_vars"]
-        h.each{|ident| code << "int #{ident} = #{rand(0..255)};"}
-      end
-      code.newline
-      code
-    end
-
-    def decl_arrays
-      code=Code.new
-      cfg.infos["internal_arrays"].each do |h|
-        name,size_lit=h.first
-        size_int=size_lit.to_s.to_i
-        init=Array.new(size_int){rand(255)}.join(",")
-        size=size_lit.accept(@prp)
-        code << "int #{name}[#{size}] ={#{init}};"
-      end
-      code.newline
-      code
-    end
-
-    def output_assigns
-      code=Code.new
-      code.newline
-      code << "//------- output assignments ------"
-      if ary=cfg.infos["output_assigns"]
-        ary.each{|h|
-          out,expr=h.first
-          rhs=expr.accept(@prp)
-          code << "*#{out} = #{rhs};"
-        }
-      end
-      code
     end
 
     def visit_rec bb
@@ -97,7 +45,7 @@ module Crokus
     def gen_plain bb
       code=Code.new
       @visited << bb
-      #code << "// bb #{bb.label}"
+      code << "// bb #{bb.label}"
       bb.stmts.each{|assign|
         code << assign.accept(@prp)
       }
@@ -108,10 +56,9 @@ module Crokus
     def gen_if bb
       code=Code.new
       @visited << bb
-      #code << "// bb 'if' #{bb.label}"
+      code << "// bb 'if' #{bb.label}"
       bb.stmts.each{|stmt| code << stmt.accept(@prp)}
-      cond=bb.infos[:cond].accept(@prp)
-      code << "if (#{cond}){"
+      code << "if (#{}){"
       code.indent=2
       code << visit_rec(bb.trueBranch)
       code.indent=0
@@ -127,6 +74,7 @@ module Crokus
     def gen_while bb
       code=Code.new
       @visited << bb
+      code << "// bb 'while' #{bb.label}"
       bb.stmts.each{|stmt| code << stmt.accept(@prp)}
       cond=bb.infos[:cond].accept(@prp)
       code << "while (#{cond}){"
@@ -141,7 +89,7 @@ module Crokus
     def gen_for bb
       code=Code.new
       @visited << bb
-      #code << "// bb 'for' #{bb.label}"
+      code << "// bb 'for' #{bb.label}"
       bb.stmts.each{|stmt| code << stmt.accept(@prp)}
       index=bb.infos["loop_index"]
       index_bound=bb.infos["loop_index_bound"]
