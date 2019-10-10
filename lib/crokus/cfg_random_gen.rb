@@ -170,7 +170,10 @@ module Crokus
       @cfg << cond_bb     = BasicBlock.new(:start_for => true)
       @index||="idx_0"
       @index=@index.succ
-      cond_bb.infos["loop_index"]=Ident.new Token.create @index
+      loop_index=Ident.new Token.create @index
+      cond_bb.infos["loop_index"]=loop_index
+      @cfg.infos["loop_indexes"]||=[]
+      @cfg.infos["loop_indexes"] << loop_index
       cond_bb.infos["loop_index_bound"]=@rng["forloop_iterations"].call.to_i
       @cfg << trueBranch  = BasicBlock.new
       @cfg << falseBranch = BasicBlock.new
@@ -210,7 +213,8 @@ module Crokus
           name,size=@cfg.infos["internal_arrays"].sample.first
           var=@readables.sample
           @readables.rotate!
-          return Indexed.new(name,Binary.new(var,MOD,size))
+          abs_func=Ident.new(Token.create "abs")
+          return Indexed.new(name,FunCall.new(abs_func,[Binary.new(var,MOD,size)]))
         end
       end
       assignee=@vars.first
@@ -239,14 +243,18 @@ module Crokus
         rhs=create_binary_expression(depth-1)
       end
       op=create_binary_op
-      return Parenth.new(Binary.new(lhs,op,rhs))
+      if op.val=="/" and lhs.to_s=="0"
+        return create_binary_expression(depth)
+      else
+        return Parenth.new(Binary.new(lhs,op,rhs))
+      end
     end
 
     ARITH={
       :add => "+",
       :sub => "-",
       :mul => "*",
-      #:div => "/",
+      :div => "/",
       #:shift_r => ">>",
       #:shift_l => "<<",
     }
@@ -268,6 +276,9 @@ module Crokus
 
     def create_binary_op
       kind,val=ARITH.sample
+      if @params["accept_integer_division"]==false and kind==:div
+        return create_binary_op # retry
+      end
       Token.new([kind,val,[0,0]])
     end
 
@@ -285,8 +296,10 @@ module Crokus
         return Parenth.new(Unary.new(MINUS,@readables.sample))
       when 3
         name,size=@cfg.infos["internal_arrays"].sample.first
-        index=Binary.new(@readables.sample,MOD,size)
-        return Indexed.new(name,index)
+        var=@readables.sample
+        abs_func=Ident.new(Token.create "abs")
+        index=FunCall.new(abs_func,[Binary.new(var,MOD,size)])
+        return Indexed.new(name,index) #eg : t[abs(a % 4)]
       else
         return @readables.sample
       end

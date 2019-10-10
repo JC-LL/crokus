@@ -4,17 +4,18 @@ Gem::Specification.new do |s|
   s.name        = 'crokus'
   s.version     = Crokus::VERSION
   s.date        = Time.now.strftime("%Y-%m-%d")
-  s.summary     = "Simple parser for a large subset of C language, for experimental purposes"
-  s.description = "Crokus is developped in Ruby and aims at providing simple basis for C transformations. It has been use for teaching purposes and applied to Electronic System Level experiments."
+  s.summary     = "Simple parser for a subset of C language, for experimental purposes"
+  s.description = "Crokus is a parser for a subset of C language. It has been use for teaching purposes and applied to Electronic System Level experiments."
   s.authors     = ["Jean-Christophe Le Lann"]
   s.email       = 'lelannje@ensta-bretagne.fr'
-
   s.files       = [
                     "lib/crokus/ast_printer.rb",
                     "lib/crokus/ast.rb",
                     "lib/crokus/cfg_builder.rb",
                     "lib/crokus/cfg_cleaner.rb",
                     "lib/crokus/cfg_printer.rb",
+                    "lib/crokus/cfg_printer_c.rb",
+                    "lib/crokus/cfg_random_gen.rb",
                     "lib/crokus/cfg.rb",
                     "lib/crokus/cleaner.rb",
                     "lib/crokus/code.rb",
@@ -40,4 +41,8 @@ Gem::Specification.new do |s|
   s.license     = 'MIT'
   s.post_install_message = "Thanks for installing ! Homepage :https://github.com/JC-LL/crokus"
   s.required_ruby_version = '>= 2.0.0'
+
+  s.add_runtime_dependency 'distribution', '0.7.3'
+  s.add_runtime_dependency 'colorize', '0.8.1'
+
 end

@@ -1,11 +1,12 @@
 name : "test1"
-nb_inputs: 2
-nb_outputs: 2
-nb_basic_blocks: 10
+nb_inputs: 3
+nb_outputs: 4
+nb_basic_blocks: 500
 nb_int_vars: 4
-nb_int_arrays: 4
+nb_int_arrays: 3
 avg_size_int_arrays: 10
-avg_assigns_per_bbs: 2
-avg_assigns_expression_depth: 2
+avg_assigns_per_bbs: 5
+avg_assigns_expression_depth: 1
 avg_forloop_iterations: 10
 accept_while_loops: false
+accept_integer_division: false

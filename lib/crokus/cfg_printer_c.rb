@@ -18,18 +18,48 @@ module Crokus
       code << "// date : #{Time.now.strftime("%a %d,%B %Y - %H:%M:%S")}"
       code << "//"+"-"*60
       code.newline
+      code << "#include <stdio.h>"
+      code << "#include <stdlib.h>"
+      code.newline
       io=[decl_inputs,decl_outputs].join(',')
       code << "int #{cfg.name}(#{io}){"
       code.indent=2
       code << decl_vars()
+      code << decl_loop_indexes()
       code << decl_arrays()
       code << visit_rec(cfg.starter)
       code << output_assigns()
       code << "return 0;"
       code.indent=0
       code << "}"
+      code.newline
+      code << main(cfg)
       puts code.finalize
       code.save_as "#{cfg.name}.c"
+    end
+
+    def main cfg
+      code=Code.new
+      code << "int main(void){"
+      code.indent=2
+      inputs,outputs=[],[]
+      cfg.infos["inputs"].each do |input|
+        code << "int #{input} = #{rand 0..255};"
+        inputs << input
+      end
+      cfg.infos["outputs"].each do |output|
+        code << "int #{output};"
+        outputs << "&#{output}"
+      end
+      params=[inputs,outputs].flatten.join(',')
+      code << "#{cfg.name}(#{params});"
+      cfg.infos["outputs"].each do |output|
+        code << "printf(\"#{output} = %d\\n\",#{output});"
+      end
+      code << "return 0;"
+      code.indent=0
+      code << "}"
+      code
     end
 
     def decl_inputs
@@ -50,6 +80,18 @@ module Crokus
         h.each{|ident| code << "int #{ident} = #{rand(0..255)};"}
       end
       code.newline
+      code
+    end
+
+    def decl_loop_indexes
+      code=Code.new
+      if cfg.infos["loop_indexes"]
+        code << "// loop indexes"
+        cfg.infos["loop_indexes"].each do |index|
+          code << "int #{index};"
+        end
+        code.newline
+      end
       code
     end
 
@@ -145,7 +187,7 @@ module Crokus
       bb.stmts.each{|stmt| code << stmt.accept(@prp)}
       index=bb.infos["loop_index"]
       index_bound=bb.infos["loop_index_bound"]
-      code << "for(int #{index}=0;#{index} < #{index_bound};#{index}++){"
+      code << "for(#{index}=0;#{index} < #{index_bound};#{index}++){"
       code.indent=2
       code << visit_rec(bb.trueBranch)
       code.indent=0

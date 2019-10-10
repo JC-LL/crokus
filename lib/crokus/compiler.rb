@@ -7,14 +7,11 @@ require_relative 'pretty_printer'
 require_relative 'cfg_builder'
 require_relative 'tac_builder'
 require_relative 'ir_dumper'
-
-# random C generation
-require_relative 'cfg_random_gen'
+require_relative 'cfg_random_gen' # random C generation
 
 module Crokus
 
   class Compiler
-
     attr_accessor :options
     attr_accessor :parser
     attr_accessor :ast
@@ -26,33 +23,19 @@ module Crokus
       @parser=Parser.new
     end
 
-    def header
-
-    end
-
     def compile filename
-      header
-
       parse(filename)
-      if options[:parse_only]
-        return true
-      end
+      return true if options[:parse_only]
 
       build_cfg
-      if options[:cfg]
-        return true
-      end
+      return true if options[:cfg]
 
       build_tac
-      if options[:tac]
-        return true
-      end
+      return true if options[:tac]
 
       emit_ir
       return true
     end
-
-
 
     def parse filename
       @base_name=File.basename(filename, ".c")
@@ -62,12 +45,6 @@ module Crokus
       draw_ast     if options[:draw_ast]
       pretty_print if options[:pp]
     end
-
-    # def parse filename
-    #   @base_name=File.basename(filename, ".c")
-    #   code=IO.read(filename)
-    #   @ast=Parser.new.parse(code)
-    # end
 
     def draw_ast tree=nil,filename=nil
       dotname=filename || "#{base_name}.dot"
@@ -117,14 +94,5 @@ module Crokus
     def execute params
       RandomGen.new.run(params)
     end
-
   end
 end
-#
-# if $PROGRAM_NAME == __FILE__
-#   filename=ARGV[0]
-#   t1 = Time.now
-#   C::Compiler.new.compile(filename)
-#   t2 = Time.now
-#   puts "parsed in     : #{t2-t1} s"
-# end
