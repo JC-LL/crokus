@@ -284,7 +284,7 @@ module Crokus
       when :semicolon
         acceptIt
         #ret=expression_statement
-      when :inc_op,:dec_op
+      when :inc_op,:dec_op,:mul
         ret=expression_statement
       else
         show_line(showNext.pos)

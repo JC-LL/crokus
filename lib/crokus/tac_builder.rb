@@ -79,14 +79,14 @@ module Crokus
       if bin.lhs.respond_to? :lhs #Binary,Indexed,etc
         #lhs=bin.lhs.accept(self)
         tmp=new_tmp()
-        @new_stmts << Assign.new(tmp,OP_ASSIGN,lhs)
+        @new_stmts << Assign.new(tmp,OP_ASSIGN,ret.lhs)
         ret.lhs=tmp
       end
       ret.rhs=bin.rhs.accept(self)
       if bin.rhs.respond_to? :lhs #Binary,Indexed,etc
         # rhs=bin.rhs.accept()
         tmp=new_tmp()
-        @new_stmts << Assign.new(tmp,OP_ASSIGN,rhs)
+        @new_stmts << Assign.new(tmp,OP_ASSIGN,ret.rhs)
         ret.rhs=tmp
       end
       return ret
