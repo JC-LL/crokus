@@ -41,7 +41,7 @@ The yaml files (one is given in tests directory) provides a set of parameters fo
 - [x] on the command line, type "crokus -h". A simple help is provided. Not many options !
 - [x] crokus --ast test.c will generate the complete AST for this C file.
 - [x] crokus --cfg test.c will generate a CFG for each function enclosed in the C file.
-- [ ] crokus test.c will generate try to generate a three-address code (TAC) textual representation (work in progress !)
+- [ ] crokus test.c will try to generate a three-address code (TAC) textual representation (work in progress !)
 More to come ! Stay tuned !
 
 ## How to help :
