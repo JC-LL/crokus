@@ -116,6 +116,9 @@ module Crokus
         ary.each{|h|
           out,expr=h.first
           rhs=expr.accept(@prp)
+          if expr.is_a? Parenth
+            rhs=expr.expr.accept(@prp)
+          end
           code << "*#{out} = #{rhs};"
         }
       end
