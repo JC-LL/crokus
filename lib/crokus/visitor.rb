@@ -59,7 +59,7 @@ module Crokus
 
     def visitType type,args=nil
       indent "Type"
-      type.specifiers.each{|spec| spec.accept(self)}
+      type.precisions.each{|precision| precision.accept(self)}
       type.name.accept(self)
       dedent
       type

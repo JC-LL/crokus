@@ -23,7 +23,7 @@ int computation(int a,int b, int c[N]){
 int main(void){
   int c[N];
   int res;
-  res=computation(12,2,c);
+  res=computation(12+3,2,c);
   printf("res=%d\n",res);
   return 0;
 }

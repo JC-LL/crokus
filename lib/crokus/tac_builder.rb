@@ -28,12 +28,12 @@ module Crokus
       @visited << bb
       @current=bb
       @new_stmts=[]
-      @post_stmts=[]
+      #@post_stmts=[]
       bb.stmts.each do |stmt|
         @new_stmts << stmt.accept(self)
       end
       bb.stmts=@new_stmts
-      bb.stmts << @post_stmts
+      #bb.stmts << @post_stmts
       bb.stmts.flatten!
       bb.succs.each do |bb|
         unless @visited.include? bb
@@ -64,11 +64,15 @@ module Crokus
 
     def visitITE ite,args=nil
       ret=ITE.new(ite.cond,ite.trueBranch,ite.falseBranch)
-      if ite.cond.is_a?(Binary)
+      case ite.cond
+      when Binary
         cond=ite.cond.accept(self)
         tmp=new_tmp()
         @new_stmts << Assign.new(tmp,OP_ASSIGN,cond)
         ret.cond=tmp
+      when Parenth
+        cond=ite.cond.accept(self)
+        ret.cond=cond.expr
       end
       ret
     end
@@ -76,14 +80,14 @@ module Crokus
     def visitBinary bin,args=nil
       ret=Binary.new(bin.lhs,bin.op,bin.rhs)
       ret.lhs=bin.lhs.accept(self)
-      if bin.lhs.respond_to? :lhs #Binary,Indexed,etc
+      if bin.lhs.respond_to?(:lhs) or bin.lhs.is_a?(FunCall)#Binary,Indexed,etc
         #lhs=bin.lhs.accept(self)
         tmp=new_tmp()
         @new_stmts << Assign.new(tmp,OP_ASSIGN,ret.lhs)
         ret.lhs=tmp
       end
       ret.rhs=bin.rhs.accept(self)
-      if bin.rhs.respond_to? :lhs #Binary,Indexed,etc
+      if bin.rhs.respond_to?(:lhs) or bin.rhs.is_a?(FunCall) #Binary,Indexed,etc
         # rhs=bin.rhs.accept()
         tmp=new_tmp()
         @new_stmts << Assign.new(tmp,OP_ASSIGN,ret.rhs)
@@ -104,6 +108,22 @@ module Crokus
       return ret
     end
 
+    def visitParenth par,args=nil
+      ret=Parenth.new(par.expr)
+      e=par.expr.accept(self)
+      tmp=new_tmp()
+      @new_stmts << Assign.new(tmp,OP_ASSIGN,e)
+      ret.expr=tmp
+      return ret
+    end
+
+    # def visitFunCall fcall,args=nil
+    #   fcall_n=super(fcall)
+    #   fcall_n.args=fcall.args.collect{|arg| arg.accept(self)}
+    #   tmp=new_tmp()
+    #   @new_stmts << Assign.new(tmp,OP_ASSIGN,fcall_n)
+    #   return tmp
+    # end
 
   end
 end
