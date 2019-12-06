@@ -2,7 +2,7 @@
 Crokus is a simple C parser written in Ruby, for experimental purpose.
 
 Crokus parses a fair subset of C, using outrageous tricks : many test examples are provided in the tests directory.
-Make your own opinion whether Crokus is helpful for you or not (drop me an email !). But don't challenge it too much :-)
+Make your own opinion whether Crokus is helpful for you or not (drop me an email !).
 
 Crokus generates an AST (abstract syntax tree), that can be visualized using Graphviz.
 Crokus also generates a control-flow graph of each function in the C code.
@@ -34,6 +34,9 @@ The yaml files (one is given in tests directory) provides a set of parameters fo
 - avg_forloop_iterations: 10
 - accept_while_loops: false
 
+Here an exemple of one generated code :
+![AST](/doc/generated.png)
+
 ## How to install :
 - rely on RubyGems (worldwide repository of Ruby libraries) : "gem install crokus"
 
@@ -41,13 +44,14 @@ The yaml files (one is given in tests directory) provides a set of parameters fo
 - [x] on the command line, type "crokus -h". A simple help is provided. Not many options !
 - [x] crokus --ast test.c will generate the complete AST for this C file.
 - [x] crokus --cfg test.c will generate a CFG for each function enclosed in the C file.
-- [ ] crokus test.c will try to generate a three-address code (TAC) textual representation (work in progress !)
+- [x] crokus test.c will try to generate a three-address code (TAC) textual representation (work in progress !)
 More to come ! Stay tuned !
 
 ## How to help :
 - report bugs by email or using github. I will try to do my best to fix them.
 - suggest or provide enhancements (Ruby code)
 - suggest or provide transformations on AST or CFG
+- Anyone interested in SSA form ? Help wanted !
 - generate code for specific purposes.
 
 ## Contact :

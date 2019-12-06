@@ -1,7 +1,7 @@
 name : "test1"
 nb_inputs: 3
 nb_outputs: 4
-nb_basic_blocks: 500
+nb_basic_blocks: 50
 nb_int_vars: 4
 nb_int_arrays: 3
 avg_size_int_arrays: 10
