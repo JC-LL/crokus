@@ -12,7 +12,7 @@ Here is an example of such AST (test_convolution.c)
 ![AST](/doc/test_convolution.png)
 
 Then, its Control-Flow Graph.
-![AST](/doc/cfg_convolve_clean.png)
+![AST](/doc/cfg_convolve_clean_50.png)
 
 If you want to implement a transformation, have a look at the Visitor class, for instance used in the PrettyPrinter class.
 
@@ -35,7 +35,7 @@ The yaml files (one is given in tests directory) provides a set of parameters fo
 - accept_while_loops: false
 
 Here an exemple of one generated code :
-![AST](/doc/generated.png)
+![AST](/doc/generated_50.png)
 
 ## How to install :
 - rely on RubyGems (worldwide repository of Ruby libraries) : "gem install crokus"
