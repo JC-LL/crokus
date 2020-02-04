@@ -31,6 +31,7 @@ Gem::Specification.new do |s|
                     "lib/crokus/tac_builder.rb",
                     "lib/crokus/token.rb",
                     "lib/crokus/transformer.rb",
+                    "lib/crokus/trojan_inserter.rb",
                     "lib/crokus/version.rb",
                     "lib/crokus/visitor.rb",
                     "lib/crokus.rb"
