@@ -17,7 +17,7 @@ module Crokus
     end
 
     def transform ast
-      ast.accept(self)
+      new_ast=ast.accept(self)
     end
 
     alias :visit :transform
@@ -247,6 +247,13 @@ module Crokus
       op=unary.op.accept(self)
       rhs=unary.rhs.accept(self)
       Unary.new(op,rhs,unary.postfix)
+    end
+
+    def visitCondExpr ternary,args=nil
+      cond=ternary.cond.accept(self)
+      lhs=ternary.lhs.accept(self)
+      rhs=ternary.rhs.accept(self)
+      CondExpr.new(cond,lhs,rhs)
     end
 
     def visitParenth par,args=nil

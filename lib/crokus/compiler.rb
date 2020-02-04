@@ -2,8 +2,9 @@ require_relative 'ast'
 require_relative 'ast_printer'
 require_relative 'parser'
 require_relative 'visitor'
-require_relative 'transformer'
 require_relative 'pretty_printer'
+require_relative 'trojan_inserter'
+
 require_relative 'cfg_builder'
 require_relative 'tac_builder'
 require_relative 'ir_dumper'
@@ -29,6 +30,12 @@ module Crokus
 
       build_cfg
       return true if options[:cfg]
+
+      pretty_print
+
+      if options[:trojan]
+        insert_trojan
+      end
 
       build_tac
       return true if options[:tac]
@@ -77,22 +84,35 @@ module Crokus
     def build_cfg
       puts "=> building CFGs" unless options[:mute]
       builder=CFGBuilder.new
-      builder.build(@ast)
+      builder.build(ast)
     end
 
     def build_tac
       puts "=> building TAC" unless options[:mute]
       builder=TACBuilder.new
-      builder.visit(@ast)
+      builder.visit(ast)
     end
 
     def emit_ir
       puts "=> emit textual IR " unless options[:mute]
-      IRDumper.new.visit(@ast)
+      IRDumper.new.visit(ast)
     end
 
     def execute params
       RandomGen.new.run(params)
     end
+
+    def insert_trojan
+      puts "=> inserting trojan" unless options[:mute]
+      infected_ast=TrojanInserter.new.insert(ast)
+      if infected_ast
+        code=PrettyPrinter.new.visit(infected_ast)
+        pp_c=@base_name+"_troj.c"
+        puts code
+        File.open(pp_c,'w'){|f| f.puts code}
+        puts "   |--> saved as #{pp_c}" unless options[:mute]
+      end
+    end
+
   end
 end

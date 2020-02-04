@@ -3,31 +3,36 @@ module Crokus
   class IRDumper < Visitor
 
     def visitFunction func,args=nil
-      puts "IR for '#{func.name}'".center(40,'=')
-      dump func.cfg
+      puts "[+] IR for '#{func.name}'"
+      ir_code=dump(func.cfg)
+      filename=func.name.to_s+".ir"
+      ir_code.save_as filename
+      puts "\t generated #{filename}"
     end
 
     def dump cfg
       @visited=[]
+      @code=Code.new
       visit_rec cfg.starter
+      return @code
     end
 
     def visit_rec bb
-      print bb.label+":"
+      @code << bb.label+":"
       @visited << bb
       @current=bb
       bb.stmts.each do |stmt|
         unless stmt.is_a? Break or stmt.is_a? Continue
-          puts "\t"+stmt.str.gsub(/;/,'')
+          @code << "\t"+stmt.str.gsub(/;/,'')
         end
       end
       unless bb.stmts.last.is_a? Crokus::ITE
         if bb.succs.any?
-          puts "\tgoto #{bb.succs.first.label}"
+          @code << "\tgoto #{bb.succs.first.label}"
         end
       end
       if bb.succs.empty?
-        puts "\tstop"
+        @code << "\tstop"
       else
         bb.succs.each do |bb|
           unless @visited.include? bb
@@ -41,7 +46,7 @@ module Crokus
       cond=ite.cond.accept(self)
       label1=ite.trueBranch.label
       label2=ite.falseBranch.label
-      "\t"+"ite #{cond},#{label1},#{label2}"
+      @code << "\t"+"ite #{cond},#{label1},#{label2}"
     end
 
   end

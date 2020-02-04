@@ -117,6 +117,14 @@ module Crokus
       return ret
     end
 
+    # TBC
+    def visitCondExpr ternary,args=nil
+      cond=ternary.cond.accept(self)
+      lhs=ternary.lhs.accept(self)
+      rhs=ternary.rhs.accept(self)
+      CondExpr.new(cond,lhs,rhs)
+    end
+
     # def visitFunCall fcall,args=nil
     #   fcall_n=super(fcall)
     #   fcall_n.args=fcall.args.collect{|arg| arg.accept(self)}

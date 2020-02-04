@@ -33,6 +33,7 @@ module Crokus
       dedent
     end
 
+    # WTF !?#
     def visitDecl decl,args=nil
       code=Code.new
       type=decl.type.accept(self)
@@ -67,9 +68,8 @@ module Crokus
 
         code << last_str
       else
-        ret = "#{type} #{vname}#{array_size}#{init}"
+        code << "#{type} #{vname}#{array_size}#{init}"
       end
-      code << ret
       code << ";"
       return code
     end
@@ -376,6 +376,13 @@ module Crokus
       return unary.postfix ? "#{e}#{op}" : "#{op}#{e}"
     end
 
+    def visitCondExpr ternary,args=nil
+      cond=ternary.cond.accept(self)
+      lhs=ternary.lhs.accept(self)
+      rhs=ternary.rhs.accept(self)
+      "#{cond} ? #{lhs} : #{rhs}"
+    end
+
     def visitParenth par,args=nil
       e=par.expr.accept(self)
       return "(#{e})"
@@ -396,10 +403,10 @@ module Crokus
     def visitArrayOrStructInit init,args=nil
       inits=init.elements.collect{|e| e.accept(self)}
       #handle imbrications
-      inits=inits.collect{|init| (init.is_a? Code) ? init.finalize : init}
+      #inits=inits.collect{|init| (init.is_a? Code) ? init.finalize : init}
       code=Code.new
       code << "{"+inits.join(",")+"}"
-      return code
+      return code.finalize
     end
 
     def visitAddressOf ao,args=nil

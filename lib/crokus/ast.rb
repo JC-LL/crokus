@@ -178,6 +178,14 @@ module Crokus
     def collect(&block)
       @stmts.collect(&block)
     end
+
+    def select(&block)
+      @stmts.select(&block)
+    end
+
+    def size
+      @stmts
+    end
   end
 
   class Stmt < Ast

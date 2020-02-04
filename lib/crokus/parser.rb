@@ -24,7 +24,7 @@ module Crokus
     end
 
     def maybe kind
-      return acceptIt if showNext.is_a? kind
+      return acceptIt if showNext.is? kind
     end
 
     def expect kind
@@ -68,10 +68,11 @@ module Crokus
       begin
         @str=str
         @tokens=Lexer.new.tokenize(str)
+        @tokens=@tokens.reject{|tok| tok==[nil,nil,nil]}
         @tokens=remove_comments()
-        warnings=@tokens.select{|tok| tok.is_a? :lexer_warning}
+        warnings=@tokens.select{|tok| tok.is? :lexer_warning}
         show_lexer_warnings(warnings)
-        @tokens=@tokens.select{|tok| !tok.is_a? [:newline]}
+        @tokens=@tokens.select{|tok| !tok.is? [:newline]}
         ast=design_unit()
       rescue Exception => e
         puts "PARSING ERROR : #{e}"
@@ -161,13 +162,13 @@ module Crokus
       indent "struct"
       expect :struct
       name=nil
-      if showNext.is_a? :ident
+      if showNext.is? :ident
         name=acceptIt
       end
       ret=Struct.new(name)
-      if showNext.is_a? :lbrace
+      if showNext.is? :lbrace
         acceptIt
-        while !showNext.is_a? :rbrace
+        while !showNext.is? :rbrace
           ret.decls << declaration()
         end
         ret.decls.flatten!
@@ -205,9 +206,9 @@ module Crokus
       indent "function_formal_args"
       args=[]
       expect :lparen
-      while !showNext.is_a? :rparen
+      while !showNext.is? :rparen
         args << func_formal_arg()
-        if !showNext.is_a? :rparen
+        if !showNext.is? :rparen
           expect :comma
         end
       end
@@ -217,12 +218,12 @@ module Crokus
     end
 
     def func_formal_arg
-      indent "function_arg"
       @current_type=type=parse_type()
       d=declarator
       a=arrayed?(type)
-      #parenthesized?
-      dedent
+      if a
+        type=a
+      end
       return FormalArg.new(type,d)
     end
 
@@ -280,7 +281,7 @@ module Crokus
           ret=expression_statement
         end
       when :const,:volatile
-        declaration
+        ret=declaration()
       when :semicolon
         acceptIt
         #ret=expression_statement
@@ -326,7 +327,7 @@ module Crokus
       ret=Switch.new(e,cases=[],default=nil)
       expect :rparen
       expect :lbrace
-      while showNext.is_a? :case
+      while showNext.is? :case
         expect :case
         case_e=expression
         case_body=Body.new
@@ -336,7 +337,7 @@ module Crokus
         end
         cases << Case.new(case_e,case_body)
       end
-      if showNext.is_a? :default
+      if showNext.is? :default
         acceptIt
         expect :colon
         default_body=Body.new
@@ -353,7 +354,7 @@ module Crokus
     def parse_return
       indent "parse_return"
       expect :return
-      unless showNext.is_a? :semicolon
+      unless showNext.is? :semicolon
         e=expression
       end
       dedent
@@ -388,7 +389,7 @@ module Crokus
       end
       init=initialization?
       ret << Decl.new(type,d,init)
-      while tokens.any? and showNext.is_a?(:comma)
+      while tokens.any? and showNext.is?(:comma)
         acceptIt
         ptr=pointed?
         if ptr
@@ -406,7 +407,7 @@ module Crokus
     end
 
     def declarator
-      if showNext.is_a? :ident
+      if showNext.is? :ident
         ret=@current_ident=Ident.new(acceptIt)
       end
       return ret
@@ -414,16 +415,16 @@ module Crokus
 
     def pointed?
       return if tokens.empty?
-      while showNext.is_a? :mul
+      while showNext.is? :mul
         acceptIt
       end
     end
 
     def arrayed?(type)
       return if tokens.empty?
-      while showNext.is_a? :lbrack
+      while showNext.is? :lbrack
         acceptIt
-        if showNext.is_a? :rbrack
+        if showNext.is? :rbrack
           acceptIt
           type=ArrayOf.new(type,IntLit.new(ZERO))
         else
@@ -437,7 +438,7 @@ module Crokus
 
     def initialization?
       return if tokens.empty?
-      if showNext.is_a? :assign
+      if showNext.is? :assign
         expect :assign
         e=expression
         return e
@@ -446,7 +447,7 @@ module Crokus
 
     def parenthesized?
       return if tokens.empty?
-      if showNext.is_a? :lparen
+      if showNext.is? :lparen
         f=function_decl(@current_ident,@current_type)
         return f
       end
@@ -457,14 +458,14 @@ module Crokus
       ret=Type.new(nil)
 
       ret.precisions << spec_qualifier?() # const, volatile
-      if showNext.is_a? [:signed,:unsigned]
+      if showNext.is? [:signed,:unsigned]
         ret.precisions << acceptIt
       end
 
       case showNext.kind
       when :ident,:char,:int,:short,:long,:float,:double,:void
         ret.name=acceptIt
-        while showNext.is_a? [:char,:int,:short,:long,:float,:double,:void]
+        while showNext.is? [:char,:int,:short,:long,:float,:double,:void]
           ret.precisions << ret.name
           ret.name=acceptIt
         end
@@ -477,14 +478,14 @@ module Crokus
         raise "Parsing ERROR in type declaration: '#{showNext}'"
       end
 
-      while showNext.is_a? [:mul,:lparen]
+      while showNext.is? [:mul,:lparen]
         case showNext.kind
         when :mul
           acceptIt
           ret=PointerTo.new(ret)
         when :lparen
           acceptIt
-          if showNext.is_a? :rparen
+          if showNext.is? :rparen
             acceptIt
           else
             expression
@@ -498,7 +499,7 @@ module Crokus
 
     def spec_qualifier?
       list=[]
-      while showNext.is_a? STARTERS_TYPE_QUALIFIER
+      while showNext.is? STARTERS_TYPE_QUALIFIER
         case showNext.kind
         when :volatile
           list << acceptIt
@@ -512,24 +513,24 @@ module Crokus
     def parse_if
       indent "parse_if"
       expect :if
-      if showNext.is_a? :lparen # helps wrt casting.
+      if showNext.is? :lparen # helps wrt casting.
         acceptIt
         lparen=true
       end
       cond=expression()
       expect :rparen if lparen
       body=Body.new
-      if showNext.is_a? :lbrace
+      if showNext.is? :lbrace
         lbrace=acceptIt
       end
       body << statement()
       if lbrace
-        until showNext.is_a? :rbrace
+        until showNext.is? :rbrace
           body << statement
         end
         expect :rbrace
       end
-      if showNext.is_a? :else
+      if showNext.is? :else
         else_=parse_else()
       end
       dedent
@@ -595,7 +596,7 @@ module Crokus
     def parse_body
       body=Body.new
       expect :lbrace
-      while !showNext.is_a? :rbrace
+      while !showNext.is? :rbrace
         body << statement()
       end
       expect :rbrace
@@ -603,7 +604,7 @@ module Crokus
     end
 
     def expression_statement
-      if showNext.is_a? :semicolon
+      if showNext.is? :semicolon
         acceptIt
       else
         e=expression
@@ -619,7 +620,7 @@ module Crokus
     def expression
       indent "expression : #{showNext}"
       e1=assign()
-      while showNext.is_a? :comma
+      while showNext.is? :comma
         acceptIt
         e2=assign()
         e1=CommaStmt.new(e1,e2)
@@ -637,7 +638,7 @@ module Crokus
     def assign
       indent "assign : #{showNext}"
       e1=cond_expr
-      while showNext.is_a? ASSIGN_OP
+      while showNext.is? ASSIGN_OP
         op=acceptIt
         e2=assign
         e1=Assign.new(e1,op,e2)
@@ -649,7 +650,7 @@ module Crokus
     def cond_expr
       indent "cond_expr : #{showNext}"
       e1=logor
-      while showNext.is_a? :qmark
+      while showNext.is? :qmark
         acceptIt
         e2=expression
         expect :colon
@@ -663,7 +664,7 @@ module Crokus
     def logor
       indent "logor : #{showNext}"
       e1=logand
-      while showNext.is_a? :oror
+      while showNext.is? :oror
         op=acceptIt
         e2=logand
         e1=Or2.new(e1,op,e2)
@@ -675,7 +676,7 @@ module Crokus
     def logand
       indent "logand : #{showNext}"
       e1=inclor
-      while showNext.is_a? :andand
+      while showNext.is? :andand
         op=acceptIt
         e2=inclor
         e1=Binary.new(e1,op,e2)
@@ -687,7 +688,7 @@ module Crokus
     def inclor
       indent "inclor : #{showNext}"
       e1=exclor
-      while showNext.is_a? :or
+      while showNext.is? :or
         op=acceptIt
         e2=exclor
         e1=Binary.new(e1,op,e2)
@@ -699,7 +700,7 @@ module Crokus
     def exclor
       indent "exclor : #{showNext}"
       e1=andexp
-      while showNext.is_a? :xor
+      while showNext.is? :xor
         op=acceptIt
         e2=andexp
         e1=Binary.new(e1,op,e2)
@@ -711,7 +712,7 @@ module Crokus
     def andexp
       indent "andexp : #{showNext}"
       e1=eqexp
-      while showNext.is_a? :and
+      while showNext.is? :and
         op=acceptIt
         e2=eqexp
         e1=Binary.new(e1,op,e2)
@@ -723,7 +724,7 @@ module Crokus
     def eqexp
       indent "eqexp : #{showNext}"
       e1=relexp
-      while showNext.is_a? [:eq,:neq]
+      while showNext.is? [:eq,:neq]
         op=acceptIt
         e2=relexp
         e1=Binary.new(e1,op,e2)
@@ -735,7 +736,7 @@ module Crokus
     def relexp
       indent "relexp : #{showNext}"
       e1=shiftexp
-      while showNext.is_a? [:lte,:lt,:gte,:gt ]
+      while showNext.is? [:lte,:lt,:gte,:gt ]
         op=acceptIt
         e2=shiftexp
         e1=Binary.new(e1,op,e2)
@@ -747,7 +748,7 @@ module Crokus
     def shiftexp
       indent "shiftexp : #{showNext}"
       e1=additive
-      while showNext.is_a? [:shift_l,:shift_r]
+      while showNext.is? [:shift_l,:shift_r]
         op=acceptIt
         e2=additive
         e1=Binary.new(e1,op,e2)
@@ -759,7 +760,7 @@ module Crokus
     def additive
       indent "addititve : #{showNext}"
       e1=multitive
-      while showNext.is_a? [:add,:sub]
+      while showNext.is? [:add,:sub]
         op=acceptIt
         e2=multitive
         e1=Binary.new(e1,op,e2)
@@ -771,7 +772,7 @@ module Crokus
     def multitive
       indent "multitive : #{showNext}"
       e1=castexp
-      while showNext.is_a? [:mul,:div,:mod]
+      while showNext.is? [:mul,:div,:mod]
         op=acceptIt
         e2=castexp
         e1=Binary.new(e1,op,e2)
@@ -806,8 +807,8 @@ module Crokus
         i+=1
       end
       tok=@tokens[i]
-      return false if tok.is_a? [:mul,:add,:sub]
-      return true if tok.is_a? STARTERS_UNARY-STARTERS_ARRAY_OR_STRUCT_INIT
+      return false if tok.is? [:mul,:add,:sub]
+      return true if tok.is? STARTERS_UNARY-STARTERS_ARRAY_OR_STRUCT_INIT
       return false
     end
 
@@ -833,7 +834,7 @@ module Crokus
     def typename
       indent "typename"
       type=specifier_qualifier
-      while showNext.is_a? STARTERS_ABSTRACT_DECLARATOR
+      while showNext.is? STARTERS_ABSTRACT_DECLARATOR
         list << abstract_decl
       end
       dedent
@@ -842,8 +843,8 @@ module Crokus
 
     def spec_qualifier_list
       indent "spec_qualifier_list #{showNext.inspect}"
-      while showNext.is_a? STARTERS_TYPE_SPECIFIER+STARTERS_TYPE_QUALIFIER
-        if showNext.is_a? STARTERS_TYPE_SPECIFIER
+      while showNext.is? STARTERS_TYPE_SPECIFIER+STARTERS_TYPE_QUALIFIER
+        if showNext.is? STARTERS_TYPE_SPECIFIER
           list << type_specifier
         else
           list << type_qualifier
@@ -857,7 +858,7 @@ module Crokus
     def type_specifier
       type=Type.new(nil,[])
       indent "type_specifier #{showNext}"
-      if showNext.is_a? STARTERS_TYPE_SPECIFIER
+      if showNext.is? STARTERS_TYPE_SPECIFIER
         ret=acceptIt
         type.name=ret
       else
@@ -875,7 +876,7 @@ module Crokus
     STARTERS_ABSTRACT_DECLARATOR=[:mul,:lparen,:lbrack]
     def abstract_decl
       indent "abstract_decl"
-      if showNext.is_a? STARTERS_ABSTRACT_DECLARATOR
+      if showNext.is? STARTERS_ABSTRACT_DECLARATOR
         case showNext.kind
         when :mul
           pointer
@@ -897,7 +898,7 @@ module Crokus
     STARTERS_TYPE_QUALIFIER=[:const,:volatile]
     def pointer
       expect :mul
-      while showNext.is_a? STARTERS_TYPE_QUALIFIER+[:mul]
+      while showNext.is? STARTERS_TYPE_QUALIFIER+[:mul]
         case showNext.kind
         when :volatile
           acceptIt
@@ -916,7 +917,7 @@ module Crokus
     def unary
       if STARTERS_PRIMARY.include? showNext.kind
         u=postfix
-      elsif showNext.is_a? [:and,:mul,:add,:sub,:tilde,:not]
+      elsif showNext.is? [:and,:mul,:add,:sub,:tilde,:not]
         op=acceptIt
         e=castexp
         u=Unary.new(op,e)
@@ -957,7 +958,7 @@ module Crokus
     def postfix
       indent "postfix : #{showNext}"
       e1=primary
-      while showNext.is_a? [:lbrack,:lparen,:dot,:inc_op,:dec_op,:ptr_op]
+      while showNext.is? [:lbrack,:lparen,:dot,:inc_op,:dec_op,:ptr_op]
         case showNext.kind
         when :lbrack
           acceptIt
@@ -967,7 +968,7 @@ module Crokus
         when :lparen
           acceptIt
           args=[]
-          if !showNext.is_a? :rparen
+          if !showNext.is? :rparen
             args=argument_expr_list
           end
           expect :rparen
@@ -1025,7 +1026,7 @@ module Crokus
     def argument_expr_list
       list=[]
       list << expression
-      while showNext.is_a? :comma
+      while showNext.is? :comma
         acceptIt
         list << expression
       end
@@ -1036,9 +1037,9 @@ module Crokus
       indent "array_or_struct_init"
       expect :lbrace
       elements=[]
-      while !showNext.is_a? :rbrace
+      while !showNext.is? :rbrace
         elements << (e=expression)
-        if showNext.is_a? :comma
+        if showNext.is? :comma
           acceptIt
         end
       end

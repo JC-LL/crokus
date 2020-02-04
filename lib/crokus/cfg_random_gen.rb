@@ -10,13 +10,13 @@ class Hash
   end
 end
 
-module Crokus
+module Newage
 
   class RandomGen
     attr_accessor :cfg
 
     def run params
-      puts "[+] running random C generation"
+      puts "[+] running random Newage code generation"
       puts " |-->[+] reading parameters file '#{params}'"
       @params=YAML.load(File.read(params))
       init_cfg

@@ -4,7 +4,7 @@ class Token
     @kind,@val,@pos=*tab
   end
 
-  def is_a? kind
+  def is? kind
     case kind
     when Symbol
       return @kind==kind
@@ -37,9 +37,15 @@ class Token
   alias :str :val
 end
 
-ONE  = Token.new  [:int_lit,'1'  ,['na','na']]
-ZERO = Token.new  [:int_lit,'0'  ,['na','na']]
-DUMMY= Token.new  [:id     ,''   ,['na','na']]
-EQUAL= Token.new  [:eq     ,'==' ,['na','na']]
-ASSIGN= Token.new [:assign ,'='  ,['na','na']]
-MOD   = Token.new [:mod ,'%'  ,['na','na']]
+INT  = Token.new  [:int    ,'int'   ,['na','na']]
+ONE  = Token.new  [:int_lit,'1'     ,['na','na']]
+ZERO = Token.new  [:int_lit,'0'     ,['na','na']]
+T42  = Token.new  [:int_lit,'42'    ,['na','na']]
+DUMMY= Token.new  [:id     ,''      ,['na','na']]
+EQUAL= Token.new  [:eq     ,'=='    ,['na','na']]
+ASSIGN= Token.new [:assign ,'='     ,['na','na']]
+XOR   = Token.new [:xor    ,'^'     ,['na','na']]
+AND   = Token.new [:and    ,'&'     ,['na','na']]
+MOD   = Token.new [:mod    ,'%'     ,['na','na']]
+SUB   = Token.new [:sub    ,'%'     ,['na','na']]
+GT    = Token.new [:gt     ,'>'     ,['na','na']]
