@@ -38,6 +38,10 @@ module Crokus
       @current << assign
     end
 
+    def visitLabeledStmt assign,args=nil
+      @current << assign
+    end
+
     def visitPreFixAccu accu,args=nil
       @current << accu
     end

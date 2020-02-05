@@ -42,8 +42,9 @@ module Crokus
 
     def visitDefine define,args=nil
       name=define.name.accept(self)
+      args=define.args.map{|arg| arg.accept(self)}
       expr=define.expr.accept(self)
-      Define.new(name,expr)
+      Define.new(name,args,expr)
     end
 
     def visitTypedef typdef,args=nil
@@ -113,6 +114,12 @@ module Crokus
     end
 
     #...........stmts...............
+    def visitLabeledStmt lstmt,args=nil
+      label=lstmt.label.accept(self)
+      stmt=lstmt.stmt.accept(self)
+      LabeledStmt.new(label,stmt)
+    end
+
     def visitCommaStmt comma,args=nil
       lhs=comma.lhs.accept(self)
       rhs=comma.rhs.accept(self)

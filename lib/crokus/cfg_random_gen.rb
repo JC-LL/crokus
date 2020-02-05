@@ -10,7 +10,7 @@ class Hash
   end
 end
 
-module Newage
+module Crokus
 
   class RandomGen
     attr_accessor :cfg

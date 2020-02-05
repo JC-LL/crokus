@@ -329,11 +329,10 @@ module Crokus
       return "continue;"
     end
 
-    def visitLabeledStmt label,args=nil
-      stmt=label.stmt.accept(self)
-      code=Code.new
-      code << stmt
-      return code
+    def visitLabeledStmt lstmt,args=nil
+      label=lstmt.label.accept(self)
+      stmt =lstmt.stmt.accept(self)
+      ret="#{label} : #{stmt.to_s}"
     end
 
     def visitGoto goto,args=nil

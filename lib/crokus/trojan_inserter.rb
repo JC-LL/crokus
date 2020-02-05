@@ -9,10 +9,10 @@ module Crokus
       @nb_trojans=0
       new_ast=transform(ast)
       if @nb_trojans>0
-        puts "insertion succeeded : #{@nb_trojans} trojan(s)"
+        puts "\t-insertion succeeded : #{@nb_trojans} trojan(s)"
         return new_ast
       else
-        puts "insertion failed"
+        puts "\t-insertion failed"
       end
       nil
     end
@@ -30,6 +30,20 @@ module Crokus
       success=insert_trojan(func_troj)
       @nb_trojans+=1 if success
       func_troj
+    end
+
+    def insert_trojan func
+      if trojan=build_trojan(func)
+        bodies=bodies_collect(func)
+        puts "\t#bodies = #{bodies.size}"
+        target_body=bodies.sample
+        stmts=target_body.stmts
+        nb_decls=stmts.select{|stmt| stmt.is_a? Decl}.size
+        pos=rand(nb_decls-1..stmts.size-1)+1
+        target_body.stmts=stmts.insert(pos,trojan)
+        return success=true
+      end
+      success=false
     end
 
     def bodies_collect func
@@ -55,26 +69,14 @@ module Crokus
           bodies << stmt.body
         when Switch
           bodies << switch_.cases.collect{|case_| case_.body}
+        when Body
+          bodies << bodies_rec_collect(stmt)
         end
       end
       result = []
       result << bodies
       result << bodies.collect{|bod| bodies_rec_collect(bod)}
       result.flatten
-    end
-
-    def insert_trojan func
-      bodies=bodies_collect(func)
-      puts "#bodies = #{bodies.size}"
-      target_body=bodies.sample
-      stmts=target_body.stmts
-      nb_decls=stmts.select{|stmt| stmt.is_a? Decl}.size
-      pos=rand(nb_decls..stmts.size-1)
-      if trojan=build_trojan(func)
-        target_body.stmts=stmts.insert(pos,trojan)
-        return success=true
-      end
-      success=false
     end
 
     INT_TYPE=Type.new(INT)
@@ -118,7 +120,7 @@ module Crokus
     }
 
     def build_trigger func
-      args=find_int_arg(func)
+      args=find_int_arg(func).map{|formal_arg| formal_arg.name}
       return unless args.size>1
       cond=Binary.new(Parenth.new(Binary.new(args[0],AND,args[1])),EQUAL,T42)
       If.new(cond,nil)

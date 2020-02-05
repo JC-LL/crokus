@@ -153,9 +153,20 @@ module Crokus
       expect :sharp
       expect :ident #define
       name=expect :ident
+      args=[]
+      if showNext.is? :lparen
+        acceptIt
+        while !showNext.is?(:rparen)
+          args << acceptIt
+          if showNext.is?(:comma)
+            acceptIt
+          end
+        end
+        expect :rparen
+      end
       e=expression()
       dedent
-      return Define.new(name,e)
+      return Define.new(name,args,e)
     end
 
     def parse_struct
@@ -297,8 +308,9 @@ module Crokus
     end
 
     def parse_label
-      expect :ident
-      expect :colon
+      id=expect(:ident)
+      expect(:colon)
+      Ident.new(id)
     end
 
     def parse_goto
@@ -475,7 +487,7 @@ module Crokus
       when :typedef
         ret=typedef()
       else
-        raise "Parsing ERROR in type declaration: '#{showNext}'"
+        raise "Parsing ERROR in type declaration: '#{showNext}' #{showNext.pos}"
       end
 
       while showNext.is? [:mul,:lparen]
@@ -541,7 +553,13 @@ module Crokus
       indent "parse else"
       expect :else
       ret=Else.new
-      ret.body=statement()
+      stmt=statement()
+      case stmt
+      when Body
+        ret.body=stmt
+      else
+        ret.body=Body.new([stmt])
+      end
       dedent
       return ret
     end
@@ -550,8 +568,13 @@ module Crokus
       indent "parse_while"
       expect :while
       cond=expression()
-      body=[]
-      body=statement()
+      stmt=statement()
+      case stmt
+      when Body
+        body=stmt
+      else
+        body=Body.new([stmt])
+      end
       dedent
       return While.new(cond,body)
     end
@@ -566,7 +589,13 @@ module Crokus
       expect :semicolon
       forloop.increment=expression()
       expect :rparen
-      forloop.body=statement()
+      stmt=statement()
+      case stmt
+      when Body
+        forloop.body=stmt
+      else
+        forloop.body=Body.new([stmt])
+      end
       dedent
       forloop
     end
@@ -667,7 +696,7 @@ module Crokus
       while showNext.is? :oror
         op=acceptIt
         e2=logand
-        e1=Or2.new(e1,op,e2)
+        e1=Binary.new(e1,op,e2)
       end
       dedent
       return e1
@@ -786,7 +815,24 @@ module Crokus
       case showNext.kind
       when :lparen # parenth expr OR casting !
         res=is_casting?
-        puts "casting? : #{res}" if $options[:verbose]
+        if res
+          e=casting
+        else
+          e=parenthesized
+        end
+      else
+        e=unary
+      end
+      dedent
+      return e
+    end
+
+    def castexp
+      #puts "castexpr : #{pp @tokens[0..3]}"
+      case showNext.kind
+      when :lparen # parenth expr OR casting !
+        res=is_casting?
+        #puts "casting=#{res}"
         if res
           e=casting
         else
@@ -800,22 +846,29 @@ module Crokus
     end
 
     def is_casting?
-      i=0
-      tok=DUMMY
-      while tok.kind!=:rparen
-        tok=@tokens[i]
-        i+=1
-      end
-      tok=@tokens[i]
-      return false if tok.is? [:mul,:add,:sub]
-      return true if tok.is? STARTERS_UNARY-STARTERS_ARRAY_OR_STRUCT_INIT
-      return false
+      #puts "is_casting? : #{pp @tokens[0..1]}"
+      cond1= @tokens[0].is?(:lparen)
+      cond2= @tokens[1].is?([:int,:uint,:short,:byte,:float,:long])
+      cond1 and cond2
     end
+
+    # def is_casting?
+    #   i=0
+    #   tok=DUMMY
+    #   while tok.kind!=:rparen
+    #     tok=@tokens[i]
+    #     i+=1
+    #   end
+    #   pp tok=@tokens[i]
+    #   return false if tok.is? [:mul,:add,:sub]
+    #   pp cond=STARTERS_UNARY-STARTERS_ARRAY_OR_STRUCT_INIT
+    #   return true if tok.is? cond
+    #   return false
+    # end
 
     def casting
       puts "casting : #{showNext}" if $options[:verbose]
       expect :lparen
-      #typename
       t=parse_type
       expect :rparen
       u=unary
@@ -934,7 +987,7 @@ module Crokus
         when :sizeof
           u=sizeof()
         else
-          raise "not an unary"
+          raise "not an unary. showNext : #{showNext}"
         end
       end
       return u

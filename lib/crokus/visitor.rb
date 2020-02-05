@@ -266,6 +266,15 @@ module Crokus
       lit
     end
 
+    def visitCondExpr cexpr,args=nil
+      indent "condexpr"
+      cexpr.cond.accept(self)
+      cexpr.lhs.accept(self,args)
+      cexpr.rhs.accept(self,args)
+      dedent
+      cexpr
+    end
+
     def visitBinary expr,args=nil
       indent "Binary"
       expr.lhs.accept(self,args)

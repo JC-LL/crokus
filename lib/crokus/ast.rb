@@ -46,9 +46,9 @@ module Crokus
   end
 
   class Define < Ast
-    attr_accessor :name,:expr
-    def initialize n,e
-      @name,@expr=n,e
+    attr_accessor :name,:args,:expr
+    def initialize n,a,e
+      @name,@args,@expr=n,a,e
     end
   end
 

@@ -28,6 +28,10 @@ class Code
     ""
   end
 
+  def to_s
+    finalize
+  end
+
   def newline
     @lines << " "
   end

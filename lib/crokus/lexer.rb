@@ -91,7 +91,7 @@ module Crokus
 
       token :ident            => /\A[a-zA-Z]\w*/i
       token :float_lit        => /\A\d*(\.\d+)(E([+-]?)\d+)?/
-      token :integer_lit      => /\A(0x[0-9a-fA-F]+)|\d+/
+      token :integer_lit      => /\A((0x[0-9a-fA-F]+)|\d+)L?/
       token :string_lit       => /\A"[^"]*"/
       token :char_lit         => /\A'\\?.'/
       token :lexer_warning    => /./

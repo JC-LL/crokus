@@ -19,6 +19,7 @@ module Crokus
     end
 
     def new_tmp
+      @tmp_id||=0
       tok=Token.create "$"+@tmp_id.to_s
       @tmp_id+=1
       tok
@@ -112,6 +113,7 @@ module Crokus
       ret=Parenth.new(par.expr)
       e=par.expr.accept(self)
       tmp=new_tmp()
+      @new_stmts||=[]
       @new_stmts << Assign.new(tmp,OP_ASSIGN,e)
       ret.expr=tmp
       return ret
