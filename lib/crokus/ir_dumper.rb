@@ -3,11 +3,11 @@ module Crokus
   class IRDumper < Visitor
 
     def visitFunction func,args=nil
-      puts "[+] IR for '#{func.name}'"
+      puts " "*1+"|--[+] IR for '#{func.name}'"
       ir_code=dump(func.cfg)
       filename=func.name.to_s+".ir"
       ir_code.save_as filename
-      puts "\t generated #{filename}"
+      puts " "*5+"|--[+] generated #{filename}"
     end
 
     def dump cfg

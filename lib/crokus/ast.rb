@@ -1,3 +1,4 @@
+
 module Crokus
 
   class Ast
@@ -425,7 +426,14 @@ module Crokus
   end
 
   class IntLit < Literal
+    def to_i
+      tok.val.to_i
+    end
   end
+  require_relative 'token'
+
+  ZERO_LIT=IntLit.new(ZERO)
+  ONE_LIT=IntLit.new(ONE)
 
   class FloatLit < Literal
   end

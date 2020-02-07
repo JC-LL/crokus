@@ -9,10 +9,10 @@ module Crokus
       @nb_trojans=0
       new_ast=transform(ast)
       if @nb_trojans>0
-        puts "\t-insertion succeeded : #{@nb_trojans} trojan(s)"
+        puts " "*1+"|--[+] insertion succeeded : #{@nb_trojans} trojan(s)"
         return new_ast
       else
-        puts "\t-insertion failed"
+        puts " "*1+"|--[?] insertion failed"
       end
       nil
     end
@@ -25,7 +25,7 @@ module Crokus
     end
 
     def visitFunction func,args=nil
-      puts "[+] func #{func.name}"
+      puts " "*1+"|--[+] func #{func.name}"
       func_troj=super(func,args)
       success=insert_trojan(func_troj)
       @nb_trojans+=1 if success
@@ -120,17 +120,40 @@ module Crokus
     }
 
     def build_trigger func
-      args=find_int_arg(func).map{|formal_arg| formal_arg.name}
-      return unless args.size>1
-      cond=Binary.new(Parenth.new(Binary.new(args[0],AND,args[1])),EQUAL,T42)
+      args=find_int_arg(func)
+      arg_names=get_arg_names(args)
+      return unless arg_names.size>1
+      cond=Binary.new(Parenth.new(Binary.new(arg_names[0],AND,arg_names[1])),EQUAL,T42)
       If.new(cond,nil)
     end
 
     def find_int_arg func
       func.args.select do |arg|
-        (tok=arg.type.name).is_a?(Token) && tok.is?(:int)
+        cond1=(tok=arg.type.name).is_a?(Token) && tok.is?(:int)
+        cond2=(atype=arg.type).is_a?(ArrayOf) && (tok=atype.name.name).is_a?(Token) && tok.is?(:int)
+        cond1 or cond2
       end
     end
+
+    def get_arg_names args
+      ret=[]
+      ret << args.map{|formal_arg|
+        case (type=formal_arg.type)
+        when ArrayOf
+          if type.size.is_a?(IntLit)
+            array_size=type.size.to_i
+            if array_size>1
+              ret << Indexed.new(formal_arg.name,ZERO_LIT)
+              ret << Indexed.new(formal_arg.name,ONE_LIT)
+            end
+          end
+        else
+          formal_arg.name
+        end
+      }
+      ret.flatten!
+    end
+
 
   end
 end

@@ -18,7 +18,7 @@ module Crokus
     end
 
     def visitFunction func,args=nil
-      puts "   |--> visitFunction '#{func.name}'" unless $options[:mute]
+      puts " |--[+] visitFunction '#{func.name}'" unless $options[:mute]
       @cfg=CFG.new(func.name)
       @current=@cfg.starter
       func.body.accept(self)
@@ -26,7 +26,7 @@ module Crokus
       @cfg=CFGCleaner.new.clean(@cfg)
       @cfg.name=Ident.new(Token.create "#{@cfg.name}_clean")
       func.cfg=@cfg
-      puts "\t|--> cfg size for '#{func.name}' : #{@cfg.size}" unless $options[:mute]
+      puts " "*5+"|--[+] cfg size for '#{func.name}' : #{@cfg.size}" unless $options[:mute]
       @cfg.print
     end
 

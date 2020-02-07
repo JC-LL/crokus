@@ -5,7 +5,7 @@ module Crokus
     OP_ASSIGN=Token.new([:assign,"=",[0,0]])
 
     def visitFunction func,args=nil
-      puts "   |--> tac builder for '#{func.name}'"
+      puts " "*1+"|--[+] tac builder for '#{func.name}'"
       build func.cfg
     end
 

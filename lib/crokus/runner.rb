@@ -69,8 +69,12 @@ module Crokus
         options[:random] = params_filename
       end
 
-      parser.on('--trojan PARAMS', "generates random c files, using parameters", String) do |params_filename|
-        options[:trojan] = params_filename
+      # parser.on('--trojan PARAMS', "generates random c files, using parameters", String) do |params_filename|
+      #   options[:trojan] = params_filename
+      # end
+
+      parser.on('--trojan', "generates random c files, using parameters") do
+        options[:trojan] = true
       end
 
       parser.on("--vv", "verbose") do
