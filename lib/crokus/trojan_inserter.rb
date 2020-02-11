@@ -28,7 +28,10 @@ module Crokus
       puts " "*1+"|--[+] func #{func.name}"
       func_troj=super(func,args)
       success=insert_trojan(func_troj)
-      @nb_trojans+=1 if success
+      if success
+        @nb_trojans+=1
+        func_troj.name=Ident.new(Token.create "#{func.name}_troj")
+      end
       func_troj
     end
 
@@ -137,7 +140,7 @@ module Crokus
 
     def get_arg_names args
       ret=[]
-      ret << args.map{|formal_arg|
+      args.each{|formal_arg|
         case (type=formal_arg.type)
         when ArrayOf
           if type.size.is_a?(IntLit)
@@ -148,10 +151,11 @@ module Crokus
             end
           end
         else
-          formal_arg.name
+          ret << formal_arg.name
         end
       }
       ret.flatten!
+      ret
     end
 
 

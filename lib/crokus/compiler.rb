@@ -34,7 +34,8 @@ module Crokus
       pretty_print
 
       if options[:trojan]
-        insert_trojan
+        return_code=insert_trojan
+        return return_code
       end
 
       build_tac
@@ -108,9 +109,11 @@ module Crokus
       if infected_ast
         code=PrettyPrinter.new.visit(infected_ast)
         pp_c=@base_name+"_troj.c"
-        puts code
         File.open(pp_c,'w'){|f| f.puts code}
-        puts "   |--> saved as #{pp_c}" unless options[:mute]
+        puts " "*5+"|--> saved as #{pp_c}" unless options[:mute]
+        return true
+      else
+        return false
       end
     end
 

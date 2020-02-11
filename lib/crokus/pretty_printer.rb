@@ -159,7 +159,7 @@ module Crokus
       fname=func.name.accept(self)
       args =func.args.collect{|arg| arg.accept(self)}
       args=args.join(",")
-      code = "\n#{tname} #{fname}(#{args})"
+      code = "\n#{tname} #{fname}(#{args});"
       return code
     end
 
@@ -194,7 +194,7 @@ module Crokus
       if assign.rhs.is_a? Parenth
         rhs=assign.rhs.expr.accept(self)
       end
-      ret="#{lhs} #{op} #{rhs};"
+      ret="#{lhs} #{op} #{rhs}"
       ret
     end
 
@@ -434,7 +434,9 @@ module Crokus
       code << "{"
       code.indent=2
       body.each do |stmt|
-        code << stmt.accept(self,true)
+        kode_stmt = stmt.accept(self,true)
+        kode_stmt << ";"
+        code << kode_stmt
       end
       code.indent=0
       code << "}"
