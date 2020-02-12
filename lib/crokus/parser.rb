@@ -68,6 +68,7 @@ module Crokus
       begin
         @str=str
         @tokens=Lexer.new.tokenize(str)
+        #pp @tokens
         @tokens=@tokens.reject{|tok| tok==[nil,nil,nil]}
         @tokens=remove_comments()
         warnings=@tokens.select{|tok| tok.is? :lexer_warning}
@@ -848,7 +849,7 @@ module Crokus
     def is_casting?
       #puts "is_casting? : #{pp @tokens[0..1]}"
       cond1= @tokens[0].is?(:lparen)
-      cond2= @tokens[1].is?([:int,:uint,:short,:byte,:float,:long])
+      cond2= @tokens[1].is?([:int,:uint,:short,:byte,:float,:long,:double])
       cond1 and cond2
     end
 

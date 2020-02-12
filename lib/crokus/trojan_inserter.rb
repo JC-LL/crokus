@@ -30,7 +30,6 @@ module Crokus
       success=insert_trojan(func_troj)
       if success
         @nb_trojans+=1
-        func_troj.name=Ident.new(Token.create "#{func.name}_troj")
       end
       func_troj
     end
