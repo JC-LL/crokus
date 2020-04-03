@@ -28,6 +28,8 @@ module Crokus
       parse(filename)
       return true if options[:parse_only]
 
+      draw_ast(@ast) if options[:ast]
+
       build_cfg
       return true if options[:cfg]
 
@@ -55,7 +57,7 @@ module Crokus
     end
 
     def draw_ast tree=nil,filename=nil
-      dotname=filename || "#{base_name}.dot"
+      dotname=filename || "#{base_name}_ast.dot"
       puts "   |--[+] drawing AST '#{dotname}'" unless options[:mute]
       ast_ = tree || @ast
       dot=AstPrinter.new.print(ast_)
