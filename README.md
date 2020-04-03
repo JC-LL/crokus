@@ -25,8 +25,8 @@ The yaml files (one is given in tests directory) provides a set of parameters fo
 - name : "test1"
 - nb_inputs: 2
 - nb_outputs: 2
-- nb_basic_blocks: 10
-- nb_int_vars: 4
+- nb_basic_blocks: 50
+- nb_int_vars: 10
 - nb_int_arrays: 4
 - avg_size_int_arrays: 10
 - avg_assigns_per_bbs: 2
