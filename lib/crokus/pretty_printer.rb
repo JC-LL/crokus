@@ -194,7 +194,7 @@ module Crokus
       if assign.rhs.is_a? Parenth
         rhs=assign.rhs.expr.accept(self)
       end
-      ret="#{lhs} #{op} #{rhs}"
+      ret="#{lhs} #{op} #{rhs};"
       ret
     end
 

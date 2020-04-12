@@ -13,10 +13,15 @@ end
 module Crokus
 
   class RandomGen
+    attr_accessor :options
     attr_accessor :cfg
 
+    def initialize options={}
+      @options=options
+    end
+
     def run params
-      puts "[+] running random Newage code generation"
+      puts "[+] running random C code generation"
       puts " |-->[+] reading parameters file '#{params}'"
       @params=YAML.load(File.read(params))
       init_cfg
@@ -30,7 +35,7 @@ module Crokus
       gen_dot # to see the structure, before hacking the content
       populate_all
       generate_c
-      #print_infos
+      print_infos
     end
 
 
@@ -306,7 +311,7 @@ module Crokus
     end
 
     def generate_c
-      PrinterC.new.print(cfg)
+      PrinterC.new(options).print(cfg)
     end
   end
 end

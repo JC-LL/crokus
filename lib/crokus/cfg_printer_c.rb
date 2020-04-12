@@ -2,15 +2,17 @@ module Crokus
 
   class PrinterC
 
-    attr_accessor :cfg
+    attr_accessor :cfg, :options
 
-    def initialize
+    def initialize options={}
+      @options=options
       @visited=[]
       @prp=PrettyPrinter.new
     end
 
     def print cfg
-      puts " |-->[+] generating C code from cfg '#{cfg.name}'"
+      filename= "#{cfg.name}.c"
+      puts " |-->[+] generating C code from cfg '#{cfg.name}' in '#{filename}'"
       @cfg=cfg
       code=Code.new
       code << "//"+"-"*60
@@ -34,8 +36,8 @@ module Crokus
       code << "}"
       code.newline
       code << main(cfg)
-      puts code.finalize
-      code.save_as "#{cfg.name}.c"
+      puts code.finalize if options[:verbose]
+      code.save_as filename
     end
 
     def main cfg

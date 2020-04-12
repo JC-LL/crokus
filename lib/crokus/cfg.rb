@@ -35,7 +35,7 @@ module Crokus
       @bbs << bb
     end
 
-    def print
+    def print versbose=false
       CFGPrinter.new.print(self,5)
     end
 
