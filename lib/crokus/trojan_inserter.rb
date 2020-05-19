@@ -56,7 +56,7 @@ module Crokus
     def insert_trojan func
       if trojan=build_trojan(func)
         bodies=bodies_collect(func)
-        puts "\t#bodies = #{bodies.size}"
+        #puts "\t#bodies = #{bodies.size}"
         target_body=bodies.sample
         stmts=target_body.stmts
         nb_decls=stmts.select{|stmt| stmt.is_a? Decl}.size
@@ -163,6 +163,7 @@ module Crokus
         return
       end
       arg1,arg2=arg_names.shuffle[0..1]
+      puts " "*5+"|--> trigger variables are : #{arg1},#{arg2}"
       cond=Binary.new(Parenth.new(Binary.new(arg1,AND,arg2)),EQUAL,T42)
       If.new(cond,nil)
     end
