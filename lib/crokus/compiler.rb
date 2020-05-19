@@ -36,7 +36,7 @@ module Crokus
       pretty_print
 
       if options[:trojan]
-        return_code=insert_trojan
+        return_code=insert_trojan()
         return return_code
       end
 
@@ -107,7 +107,7 @@ module Crokus
 
     def insert_trojan
       puts "[+] inserting trojan" unless options[:mute]
-      infected_ast=TrojanInserter.new.insert(ast)
+      infected_ast=TrojanInserter.new(@options).insert(ast)
       if infected_ast
         code=PrettyPrinter.new.visit(infected_ast)
         pp_c=@base_name+"_troj.c"

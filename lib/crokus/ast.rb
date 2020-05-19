@@ -35,6 +35,10 @@ module Crokus
     def to_s
       @tok.val
     end
+
+    def self.create str
+      Ident.new(Token.create(str))
+    end
   end
 
   class Include < Ast

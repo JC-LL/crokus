@@ -69,8 +69,14 @@ module Crokus
         options[:random] = params_filename
       end
 
-      parser.on('--trojan', "generates random c files, using parameters") do
+      # optional argument for --trojan
+      parser.on('--trojan FUNC', "insert Syracuse Trojan in function FUNC") do |target_func|
+        if target_func.end_with?(".c")
+          puts "wrong argument for --trojan . It requires a function name as argument."
+          abort
+        end
         options[:trojan] = true
+        options[:trojan_target_func]=target_func
       end
 
       parser.on("--vv", "verbose") do

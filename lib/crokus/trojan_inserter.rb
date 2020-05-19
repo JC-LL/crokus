@@ -5,6 +5,10 @@ module Crokus
 
   class TrojanInserter < Transformer
 
+    def initialize options={}
+      @options=options
+    end
+
     def insert ast
       @nb_trojans=0
       new_ast=transform(ast)
@@ -13,6 +17,12 @@ module Crokus
         return new_ast
       else
         puts " "*1+"|--[?] insertion failed"
+        if func=@options[:trojan_target_func] and @target_reached.nil?
+          puts " "*5+"|-- no function named '#{func}' found"
+        end
+        if @failure_reason
+          puts " "*5+"|-- #{@failure_reason}"
+        end
       end
       nil
     end
@@ -25,11 +35,20 @@ module Crokus
     end
 
     def visitFunction func,args=nil
-      puts " "*1+"|--[+] func #{func.name}"
       func_troj=super(func,args)
-      success=insert_trojan(func_troj)
-      if success
-        @nb_trojans+=1
+      if @options[:trojan_target_func].nil? or (name=@options[:trojan_target_func] and target_reached=(func.name.to_s==name))
+        puts " "*1+"|--[+] func #{func.name}"
+        if target_reached
+          @target_reached=true
+        end
+        success=insert_trojan(func_troj)
+        if success
+          # hannah request : add a _troj to the function :
+          func_troj.name=Ident.create(func.name.to_s+'_troj')
+          @rename_funcs||={} # take cares of future calls to func !
+          @rename_funcs[func.name.to_s]=func_troj.name.to_s
+          @nb_trojans+=1
+        end
       end
       func_troj
     end
@@ -46,6 +65,18 @@ module Crokus
         return success=true
       end
       success=false
+    end
+
+    def visitFunCall fcall,args=nil
+      name=fcall.name.accept(self)
+      if @rename_funcs # propagate func renaming applied during visitFunction
+        if @rename_funcs.keys.include?(name.to_s)
+          new_name=@rename_funcs[name.to_s]
+          name=Ident.create(new_name)
+        end
+      end
+      args=fcall.args.collect{|arg| arg.accept(self)}
+      FunCall.new(name,args)
     end
 
     def bodies_collect func
@@ -86,7 +117,10 @@ module Crokus
     def build_trojan func
       trojan=Body.new
       anchor_var=choose_anchor(func)
-      return unless anchor_var
+      if anchor_var.nil?
+        @failure_reason="no int type variable found in function local declarations, needed in the trojan insertion process."
+        return
+      end
       u_=Ident.new(Token.create("u_"))
       v_=Ident.new(Token.create("v_"))
       i_=Ident.new(Token.create("i_"))
@@ -124,8 +158,12 @@ module Crokus
     def build_trigger func
       args=find_int_arg(func)
       arg_names=get_arg_names(args)
-      return unless arg_names.size>1
-      cond=Binary.new(Parenth.new(Binary.new(arg_names[0],AND,arg_names[1])),EQUAL,T42)
+      unless arg_names.size>1
+        @failure_reason="not enough args of type int in func '#{func.name}' to build a trigger."
+        return
+      end
+      arg1,arg2=arg_names.shuffle[0..1]
+      cond=Binary.new(Parenth.new(Binary.new(arg1,AND,arg2)),EQUAL,T42)
       If.new(cond,nil)
     end
 
