@@ -76,26 +76,27 @@ Crokus allows to generate random c functions, for experimental purposes. To run,
   ```bash
   crokus --random params.yaml
   ```
-The yaml files (one is given in tests directory) provides a set of parameters for the random generation, like this (without the '-' in the yaml file ):
-- name : "test1"
-- nb_inputs: 2
-- nb_outputs: 2
-- nb_basic_blocks: 50
-- nb_int_vars: 10
-- nb_int_arrays: 4
-- avg_size_int_arrays: 10
-- avg_assigns_per_bbs: 2
-- avg_assigns_expression_depth: 2
-- avg_forloop_iterations: 10
-- accept_while_loops: false
-
+The **yaml** files (one is given in tests directory) provides a set of parameters for the random generation, like this (without the '-' in the yaml file ):
+  ```yaml
+  name : "test1"
+  nb_inputs: 2
+  nb_outputs: 2
+  nb_basic_blocks: 50
+  nb_int_vars: 10
+  nb_int_arrays: 4
+  avg_size_int_arrays: 10
+  avg_assigns_per_bbs: 2
+  avg_assigns_expression_depth: 2
+  avg_forloop_iterations: 10
+  accept_while_loops: false
+  ```
 Here an exemple of one generated code (content is omitted here but actually present in the basic blocks):
 <!-- ![AST](/doc/generated_50.png | width=100) -->
 <img src="/doc/generated_50.png" alt="AST" width="500" height="500">
 
 ## Trojan insertion
 Crokus is also malicious. It is able to insert a specific Trojan (named Syracuse) on a specfic C function. Then the execution may slow down mysteriously. The triggering of Syracuse depends on the combination of specific input values (need documentation).
-Syracuse is inserted such that other C compilers cannot remove it through plain dataflow analysis: Syracuse is not dead code.
+Syracuse is inserted such that other C compilers cannot remove it through plain dataflow analysis: Syracuse is not _dead code_.
 
 ## How to install :
 - rely on RubyGems (worldwide repository of Ruby libraries) : "gem install crokus"

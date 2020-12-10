@@ -3,7 +3,7 @@ module Crokus
   class CFGOptimizer
 
     def clean cfg
-      puts " "*5+"|--[+] optimizing '#{cfg.name}'" unless $options[:mute]
+      puts " "*5+"|--[+] optimizing cfg '#{cfg.name}'" unless $options[:mute]
       @cfg=cfg
       @visited=[]
       @new_succs={}

@@ -47,7 +47,7 @@ module Crokus
       while !@visited.include?(bb)
         @visited << bb
         c_code=bb.code4dot
-        puts c_code
+        #puts c_code
         c_code=clean4dot(c_code)
         code << "#{id(bb)} [label=\"#{c_code}\",shape=rectangle, xlabel=#{bb.label}]"
         bb.succs.each_with_index do |succ,idx|
