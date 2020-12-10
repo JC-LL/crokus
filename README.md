@@ -1,5 +1,6 @@
 # crokus
-Crokus is a simple C front-end written in Ruby, for experimental purpose.
+Crokus is a simple C compiler front-end written in Ruby, for experimental purpose.
+Today it does not produce assembly per se.
 
 Crokus parses a fair subset of C, using outrageous tricks : many test examples are provided in the tests directory.
 Make your own opinion whether Crokus is helpful for you or not (drop me an email !).
@@ -116,4 +117,5 @@ More to come ! Stay tuned !
 - generate code for specific purposes.
 
 ## Contact :
-- drop me an email at : jean-christophe.le_lann@ensta-bretagne.fr or jc.lelann@gmail.com
+  - I am opened to any sort of collaboration !
+  - Drop me an email at : jean-christophe.le_lann@ensta-bretagne.fr or jc.lelann@gmail.com
