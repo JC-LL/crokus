@@ -91,7 +91,7 @@ The yaml files (one is given in tests directory) provides a set of parameters fo
 
 Here an exemple of one generated code (content is omitted here but actually present in the basic blocks):
 <!-- ![AST](/doc/generated_50.png | width=100) -->
-<img src="/doc/generated_50.png" alt="AST" width="100" height="100">
+<img src="/doc/generated_50.png" alt="AST" width="500" height="500">
 
 ## Trojan insertion
 Crokus is also malicious. It is able to insert a specific Trojan (named Syracuse) on a specfic C function. Then the execution may slow down mysteriously. The triggering of Syracuse depends on the combination of specific input values (need documentation).
