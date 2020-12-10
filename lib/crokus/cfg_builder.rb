@@ -1,5 +1,6 @@
 require_relative 'cfg'
 require_relative 'cfg_cleaner'
+require_relative 'cfg_optim'
 
 require_relative 'visitor'
 require_relative 'cleaner'
@@ -24,6 +25,7 @@ module Crokus
       func.body.accept(self)
       @cfg.print
       @cfg=CFGCleaner.new.clean(@cfg)
+      @cfg=CFGOptimizer.new.clean(@cfg)
       @cfg.name=Ident.new(Token.create "#{@cfg.name}_clean")
       func.cfg=@cfg
       puts " "*5+"|--[+] cfg size for '#{func.name}' : #{@cfg.size}" unless $options[:mute]
@@ -126,6 +128,10 @@ module Crokus
       @current=falseBranch
     end
 
+    def visitFunCall fcall,args=nil
+      @current << fcall
+    end
+
     def visitFor for_,args=nil
       for_.init.each{|stmt| stmt.accept(self)}
       cond=for_.cond.accept(self)
@@ -146,6 +152,10 @@ module Crokus
       for_.increment.accept(self)
       @current.to cond_bb
       @current=falseBranch
+    end
+
+    def visitReturn ret,args=nil
+      @current << ret
     end
 
     def visitDoWhile dowhile,args=nil
