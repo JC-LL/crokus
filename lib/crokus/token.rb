@@ -1,5 +1,7 @@
 class Token
+
   attr_accessor :kind,:val,:pos
+
   def initialize tab
     @kind,@val,@pos=*tab
   end

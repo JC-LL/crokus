@@ -25,22 +25,24 @@ module Crokus
 
     def visit_rec bb
       @visited << bb
+      @code << "bb_#{bb.label} [label=\"\",shape=rectangle, xlabel=#{bb.label}]"
       @current=bb
       if (ite=bb.stmts.last).is_a? ITE
-        @code << "#{bb.label} -> #{(bb_t=ite.trueBranch).label} [label=\"T\"]"
-        @code << "#{bb.label} -> #{(bb_f=ite.falseBranch).label} [label=\"F\"]"
-        unless @visited.include? bb_t
+
+        unless @visited.include? (bb_t=ite.trueBranch)
             visit_rec(bb_t)
         end
-        unless @visited.include? bb_t
-            visit_rec(bb_t)
+        unless @visited.include? (bb_f=ite.falseBranch)
+            visit_rec(bb_f)
         end
+        @code << "bb_#{bb.label} -> bb_#{(bb_t=ite.trueBranch).label} [label=\"T\"]"
+        @code << "bb_#{bb.label} -> bb_#{(bb_f=ite.falseBranch).label} [label=\"F\"]"
       else
         bb.succs.each do |succ|
-          @code << "#{bb.label} -> #{succ.label}"
           unless @visited.include? succ
             visit_rec(succ)
           end
+          @code << "bb_#{bb.label} -> bb_#{succ.label}"
         end
       end
     end

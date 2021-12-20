@@ -443,6 +443,9 @@ module Crokus
   end
 
   class StrLit < Literal
+    def self.create str
+      StrLit.new( Token.new [:string_lit,"\"#{str}\"",[0,0]] )
+    end
   end
 
   class CharLit < Literal

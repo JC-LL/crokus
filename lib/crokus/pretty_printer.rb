@@ -187,6 +187,11 @@ module Crokus
       ret
     end
 
+    def visitSemicolonStmt stmt,args=nil
+      ret=";"
+      ret
+    end
+
     def visitAssign assign,args=nil
       lhs=assign.lhs.accept(self)
       op =assign.op.accept(self)

@@ -131,8 +131,14 @@ module Crokus
       end
     end
 
+    def bb_track bb
+      bb << fcall=FunCall.new(Ident.create("printf"),[StrLit.create("cfg track : %s\\n"),StrLit.create(bb.label)])
+      bb << SemicolonStmt.new(nil)
+    end
+
     def gen_plain_block level
       @cfg << bb=BasicBlock.new
+      bb_track(bb)
       @current.to bb
       @current=bb
     end
@@ -143,6 +149,11 @@ module Crokus
       @cfg << trueBranch =BasicBlock.new
       @cfg << falseBranch=BasicBlock.new
       @cfg << mergeBranch=BasicBlock.new
+
+      bb_track(trueBranch)
+      bb_track(falseBranch)
+      bb_track(mergeBranch)
+
       @current.to trueBranch
       @current.to falseBranch
 
@@ -162,6 +173,12 @@ module Crokus
       cond_bb.infos[:cond]=create_condition
       @cfg << trueBranch  = BasicBlock.new
       @cfg << falseBranch = BasicBlock.new
+
+
+      bb_track(cond_bb)
+      bb_track(trueBranch)
+      bb_track(falseBranch)
+
       @current.to cond_bb
       cond_bb.to trueBranch
       cond_bb.to falseBranch
@@ -183,6 +200,13 @@ module Crokus
       @cfg << trueBranch  = BasicBlock.new
       @cfg << falseBranch = BasicBlock.new
       @cfg << postBranch  = BasicBlock.new(:loop_body_end => true)
+
+      # control flow tracking
+      bb_track(cond_bb)
+      bb_track(trueBranch)
+      bb_track(falseBranch)
+      bb_track(postBranch)
+
       @current.to cond_bb
       cond_bb.to trueBranch
       cond_bb.to falseBranch
