@@ -23,7 +23,7 @@ module Crokus
     end
 
     def header
-      puts "Crokus (#{VERSION})- (c) JC Le Lann 2016-20"
+      puts "Crokus (#{VERSION})- (c) JC Le Lann 2016-today"
     end
 
     private
@@ -65,6 +65,14 @@ module Crokus
         options[:emit_ir] = true
       end
 
+      parser.on("--print-cfg-dot", "print textual CFG ONLY in Graphviz format") do
+        options[:print_cfg_dot] = true
+      end
+
+      parser.on("--print-cfg-json", "print textual CFG ONLY in JSON format") do
+        options[:print_cfg_json] = true
+      end
+
       parser.on('--random PARAMS', "generates random c files, using parameters", String) do |params_filename|
         options[:random] = params_filename
       end
@@ -74,6 +82,7 @@ module Crokus
         if target_func.end_with?(".c")
           puts "wrong argument for --trojan . It requires a function name as argument."
           abort
+
         end
         options[:trojan] = true
         options[:trojan_target_func]=target_func

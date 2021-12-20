@@ -6,6 +6,8 @@ require_relative 'pretty_printer'
 require_relative 'trojan_inserter'
 
 require_relative 'cfg_builder'
+require_relative 'cfg_printer_only_dot'
+require_relative 'cfg_printer_only_json'
 require_relative 'tac_builder'
 require_relative 'ir_dumper'
 require_relative 'cfg_random_gen' # random C generation
@@ -32,6 +34,16 @@ module Crokus
 
       build_cfg
       return true if options[:cfg]
+
+      if options[:print_cfg_dot]
+        print_cfg_only(:dot)
+        return true
+      end
+
+      if options[:print_cfg_json]
+        print_cfg_only(:json)
+        return true
+      end
 
       pretty_print
 
@@ -99,6 +111,16 @@ module Crokus
     def emit_ir
       puts "[+] emit textual IR " unless options[:mute]
       IRDumper.new.visit(ast)
+    end
+
+    def print_cfg_only format
+      puts "[+] print textual CFG only format #{format}" unless options[:mute]
+      case format
+      when :dot
+        CFGOnlyPrinterDot.new.visit(ast)
+      when :json
+        CFGOnlyPrinterJson.new.visit(ast)
+      end
     end
 
     def execute params
