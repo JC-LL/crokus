@@ -13,6 +13,7 @@ Gem::Specification.new do |s|
                     "lib/crokus/ast.rb",
                     "lib/crokus/cfg_builder.rb",
                     "lib/crokus/cfg_cleaner.rb",
+                    "lib/crokus/cfg_optim.rb",
                     "lib/crokus/cfg_printer.rb",
                     "lib/crokus/cfg_printer_c.rb",
                     "lib/crokus/cfg_random_gen.rb",
