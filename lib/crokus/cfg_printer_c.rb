@@ -23,7 +23,7 @@ module Crokus
       code << "#include <stdio.h>"
       code << "#include <stdlib.h>"
       code.newline
-      io=[decl_inputs,decl_outputs].join(',')
+      io=[decl_inputs(),decl_outputs()].join(',')
       code << "int #{cfg.name}(#{io}){"
       code.indent=2
       code << decl_vars()

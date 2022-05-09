@@ -77,6 +77,10 @@ module Crokus
         options[:random] = params_filename
       end
 
+      parser.on('--show_lines', "show CFG labels <--> lines") do
+        options[:show_lines] = true
+      end
+
       # optional argument for --trojan
       parser.on('--trojan FUNC', "insert Syracuse Trojan in function FUNC") do |target_func|
         if target_func.end_with?(".c")

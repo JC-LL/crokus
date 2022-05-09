@@ -8,6 +8,7 @@ require_relative 'trojan_inserter'
 require_relative 'cfg_builder'
 require_relative 'cfg_printer_only_dot'
 require_relative 'cfg_printer_only_json'
+require_relative 'cfg_line_printer'
 require_relative 'tac_builder'
 require_relative 'ir_dumper'
 require_relative 'cfg_random_gen' # random C generation
@@ -46,6 +47,10 @@ module Crokus
       end
 
       pretty_print
+
+      if options[:show_lines]
+        show_lines()
+      end
 
       if options[:trojan]
         return_code=insert_trojan()
@@ -139,6 +144,11 @@ module Crokus
       else
         return false
       end
+    end
+
+    def show_lines
+      puts "[+] showing labels/lines mapping" unless options[:mute]
+      CFGLinePrinter.new.visit(@ast)
     end
 
   end

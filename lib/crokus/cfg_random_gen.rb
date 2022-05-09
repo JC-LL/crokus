@@ -170,7 +170,7 @@ module Crokus
 
     def gen_while_block level
       @cfg << cond_bb     = BasicBlock.new(:start_while => true)
-      cond_bb.infos[:cond]=create_condition
+      cond_bb.infos[:cond]=create_condition()
       @cfg << trueBranch  = BasicBlock.new
       @cfg << falseBranch = BasicBlock.new
 
